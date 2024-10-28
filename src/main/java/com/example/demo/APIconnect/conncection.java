@@ -12,8 +12,8 @@ import java.time.Clock;
 
 @RestController
 public class conncection {
-    @CrossOrigin(origins  = "/")
-    @GetMapping("/api/hello")
+    //@CrossOrigin(origins  = "/")
+    //@GetMapping("/api/hello")
     //@RequestMapping("/api")
     public String Hello(){
         return "hi hi";
