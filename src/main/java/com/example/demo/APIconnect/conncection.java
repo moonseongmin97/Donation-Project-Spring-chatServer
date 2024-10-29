@@ -16,6 +16,6 @@ public class conncection {
     @GetMapping("/api/hello")
     //@RequestMapping("/api")
     public String Hello(){
-        return "hi hi test";
+        return "hi hi test222";
     }
 }
