@@ -24,5 +24,6 @@ public class conncection {
     public String checkDatabaseConnection() {
         boolean isConnected = PostgreSQLConnectionUtil.isConnected();
         return isConnected ? "DB 연결 성공" : "DB 연결 실패";
+
     }
 }
