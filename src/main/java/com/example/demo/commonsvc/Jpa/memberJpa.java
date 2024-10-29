@@ -1,5 +1,5 @@
 package com.example.demo.commonsvc.Jpa;
-import com.example.demo.commonsvc.to.Member;
+import com.example.demo.commonsvc.to.MemberEntity;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -35,12 +35,12 @@ public class memberJpa {
         try {
            // Member member = new Member();
 
-            List<Member> members = em.createQuery( "select m from Member m where id = 1" , Member.class)
+            List<MemberEntity> members = em.createQuery( "select m from Member m where id = 1" , MemberEntity.class)
                     //.setParameter("userId", "2")
                     .getResultList();
             System.out.println("멤버---"+members);
-            for(Member a :members){
-                System.out.println("리스트 제발=="+a.getName());
+            for(MemberEntity a :members){
+                //System.out.println("리스트 제발=="+a.getName());
                 //System.out.println("리스트 제발22=="+a.getName());
             }
 

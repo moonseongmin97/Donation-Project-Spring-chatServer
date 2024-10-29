@@ -28,11 +28,14 @@ public class Login {
         return "hi";
     }
     @CrossOrigin(origins  = "/")
-    @PostMapping("/api/login")
+    //@PostMapping("/api/login")
+    @RequestMapping(value = "/api/login", method = {RequestMethod.GET, RequestMethod.POST})
     //@RequestMapping("/api")
     public String Login(HttpServletRequest request, @RequestBody Map<String, Object> paramMap){
 
-        System.out.println("찍힘="+paramMap);
+    	
+    	String a = request.getParameter("param").toString();	
+        System.out.println("찍힘="+a);
 
 
         return "";
