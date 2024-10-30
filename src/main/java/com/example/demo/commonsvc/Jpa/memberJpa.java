@@ -1,6 +1,6 @@
 package com.example.demo.commonsvc.Jpa;
 import com.example.demo.commonsvc.to.MemberEntity;
-import org.apache.ibatis.annotations.Param;
+//import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 
 

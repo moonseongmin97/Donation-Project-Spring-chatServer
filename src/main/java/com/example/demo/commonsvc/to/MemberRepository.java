@@ -11,9 +11,14 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
+import javax.transaction.Transactional;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+//@Transactional
 @Repository
 public class MemberRepository {
 	
@@ -30,7 +35,28 @@ public class MemberRepository {
 	        //TypedQuery<MemberEntity> query = entityManager.createQuery(jpql, MemberEntity.class);
 	     	System.out.println("세번쨰도 됨");
 	     	//entityManager.
-	        return entityManager.createQuery("SELECT m FROM Member m", MemberEntity.class).getResultList();
+	     	
+	     	List<MemberEntity> a = entityManager.createQuery("SELECT m FROM MemberEntity m", MemberEntity.class).getResultList();
+	     	System.out.println("짠"+entityManager.createQuery("SELECT m FROM MemberEntity m", MemberEntity.class).getResultList().getClass().getName());
+	     
+	     	for(int i=0 ; i< a.size();i++) {
+	     		System.out.println("순서=" + i+"="+a.get(i)); 
+	     	}
+	     	
+	     	for (MemberEntity member : a) {
+	     	    Map<String, Object> memberMap = new HashMap<>();
+	     	    memberMap.put("ID", member.getId());
+	     	    memberMap.put("Username", member.getUsername());
+	     	    memberMap.put("Email", member.getEmail());
+	     	    memberMap.put("CreatedAt", member.getCreatedAt());
+
+	     	    System.out.println(memberMap);  // Map 형태로 출력
+	     	}
+	     	
+	     	
+	     	
+	     	return entityManager.createQuery("SELECT m FROM MemberEntity m", MemberEntity.class).getResultList();
+	        //return entityManager.createQuery("SELECT m FROM Member m", MemberEntity.class).getResultList();
 	        //return query.getResultList();
 	    }
 
