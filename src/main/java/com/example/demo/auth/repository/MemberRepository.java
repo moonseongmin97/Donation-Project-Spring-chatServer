@@ -1,9 +1,8 @@
-package com.example.demo.commonsvc.to;
+package com.example.demo.auth.repository;
 
 import org.springframework.stereotype.Repository;
 
-
-
+import com.example.demo.auth.entity.MemberEntity;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -18,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-//@Transactional
+@Transactional
 @Repository
 public class MemberRepository {
 	

@@ -1,4 +1,4 @@
-package com.example.demo.commonsvc.to;
+package com.example.demo.auth.entity;
 
 
 import java.time.LocalDateTime;

@@ -1,5 +1,4 @@
-package com.example.demo.commonsvc.Jpa;
-import com.example.demo.commonsvc.to.MemberEntity;
+package com.example.demo.auth.repository;
 //import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -11,6 +10,8 @@ import javax.persistence.Persistence;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.auth.entity.MemberEntity;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class memberJpa {
+public class memberJpaBackup {
    @Autowired
     public static String findMember(Map<String, Object> param) {
         System.out.println("jpa class");

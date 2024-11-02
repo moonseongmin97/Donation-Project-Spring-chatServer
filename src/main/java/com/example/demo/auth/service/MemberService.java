@@ -1,12 +1,11 @@
-package com.example.demo.commonsvc.service;
+package com.example.demo.auth.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.demo.commonsvc.to.MemberEntity;
-import com.example.demo.commonsvc.to.MemberRepository;
-
+import com.example.demo.auth.entity.MemberEntity;
+import com.example.demo.auth.repository.MemberRepository;
 
 import java.util.List;
 import java.util.Optional;
