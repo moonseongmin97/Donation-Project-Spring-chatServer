@@ -6,11 +6,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.auth.dto.MemberDto;
+import com.example.demo.auth.dto.MemberRequestDto;
 import com.example.demo.auth.entity.MemberEntity;
 import com.example.demo.auth.service.MemberService;
 import com.example.demo.common.response.ApiResponse;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.persistence.PersistenceContext;
@@ -32,8 +35,9 @@ import javax.servlet.http.HttpServletRequest;
 
 	    // ID로 회원 조회
 	    @GetMapping("/{id}")
-	    public Optional<MemberEntity> getMemberById(@PathVariable Long id) {
-	        return memberService.findMemberById(id);
+	    //public Optional<MemberEntity> getMemberById(@PathVariable Long id) {
+	    public Optional<MemberEntity> getMemberById(@RequestBody MemberDto member) {
+	        return memberService.findMemberById(member);
 	    }
 
 	    // 이메일로 회원 조회
@@ -50,32 +54,27 @@ import javax.servlet.http.HttpServletRequest;
 	    
 	    // 회원 조회
 	    @PostMapping("/select")
-	    public void select(HttpServletRequest request,   @RequestBody MemberEntity member) throws Exception {
-	        memberService.saveMember(member);
+	    public void select(HttpServletRequest request,   @RequestBody MemberDto member) throws Exception {
+	        memberService.findMemberById(member);
 	    }
 	    
 	    
-	    // 회원 가입
-	    //@PostMapping("/signup")
-	    @PostMapping(value = "/signup")
-	    public ResponseEntity joinMember(@RequestBody  MemberDto memberDto) {
-	    	System.out.println("실행=="+memberDto.getId());
-	    	
+	    // 회원 조회
+	    @PostMapping(value = "/signIn")
+	    public ResponseEntity joinMember(@RequestBody  MemberRequestDto memberDto) {
+	    	System.out.println("실행=="+memberDto.getLoginId());
+	    	//System.out.println("실행=="+memberDto.getpw());
 	    	try {
-	            //memberService.saveMember(memberDto);
-	        	
-	        	System.out.println("성공");
-	            ApiResponse response = new ApiResponse(true, "회원 가입 성공");
-	            
-	            return new ResponseEntity<>(response, HttpStatus.CREATED);
-	            //return ResponseEntity.status(HttpStatus.CREATED).body(response);
+		    	Map<String, Object> result =memberService.findActiveMemberByLoginId(memberDto);
+	            //memberService.saveMember(memberDto);	    		
+	    		System.out.println("실행222=======");	    			    		
+	            ApiResponse response = new ApiResponse(result.get("state").toString(), result.get("msg").toString());	            	            	            	          
+	            //return new ResponseEntity<>(response, HttpStatus.CREATED);
+	            return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	           //return memberDto;
 	        } catch (Exception e) {
-	            ApiResponse response = new ApiResponse(false, "회원 가입 실패: " + e.getMessage());
-	            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-	            //return ResponseEntity.status(HttpStatus.CREATED).body(response);
-	            
-	            //return memberDto;
+	            ApiResponse response = new ApiResponse("false", "서버 에러로 회원 가입 실패");
+	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);	            
 	        }
 	    }
 	    
