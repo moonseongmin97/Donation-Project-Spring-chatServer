@@ -2,6 +2,7 @@ package com.example.demo.auth.service;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +12,7 @@ import com.example.demo.auth.dto.MemberResponseDto;
 import com.example.demo.auth.entity.MemberEntity;
 import com.example.demo.auth.mapper.MemberMapper;
 import com.example.demo.auth.repository.MemberRepository;
+import com.example.demo.common.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,12 +24,8 @@ public class MemberService  {
 	@Autowired  
     private  MemberRepository memberRepository;
 
-	//@Autowired 
-	//private  PasswordEncoder passwordEncoder;
-	/*
-	 * @Autowired(required=false) private MemberMapper memberMapper;
-	 */
-
+	@Autowired 
+	private  PasswordEncoder passwordEncoder;
     
     @Autowired
     private  ModelMapper modelMapper;
@@ -39,14 +37,76 @@ public class MemberService  {
     }
 
     // ID로 회원 조회
-    public Optional<MemberEntity> findMemberById(MemberDto memberDto) {
+    public Optional<MemberEntity> findMemberById(MemberRequestDto memberDto) {
     	//System.out.println("실행333===");
     	//String formattedUserId = String.format("%06d", ""); // 자바에서 6자리로 포맷팅
     	MemberEntity a = new MemberEntity();
-    	a.setLoginId(memberDto.getId().toString());
+    	a.setLoginId(memberDto.getLoginId().toString());
     	a.setUserId(Long.parseLong("111111"));
     	///System.out.println("비즈니스로직==="+a.getUserId());
         return memberRepository.findById(a.getUserId());
+    }
+    
+    
+    // 회원 가입
+    public Map<String, Object> joinMember(MemberRequestDto requestDto) {
+        Map<String, Object> result = new HashMap<>();        
+       try {    	   
+	        MemberEntity memberEntity = modelMapper.map(requestDto, MemberEntity.class);  //MemberRequestDto -> MemberEntity	        
+	        	        
+	        if(memberRepository.existsByLoginId(memberEntity.getLoginId())) { //아이디 조회
+	            result.put("state", false);
+	            result.put("msg", "이미 아이디가 존재합니다.");
+	            return result; 
+	        }	        
+	        Map<String, Object> validate= validateMemberEntity(memberEntity);  //유효성 검사
+	        
+	        if(!(boolean)validate.get("state")) {	        	
+	        	return validate;                             
+	        }	        
+        	        	        
+	        memberEntity.setPasswordHash(passwordEncoder.encode(requestDto.getPasswordHash())); // 패스워드 암호화
+		      
+		       memberRepository.joinMember(memberEntity);   // 회원 가입 	
+		      
+	            result.put("state", true);
+	            result.put("msg", "회원 가입 성공.");	       
+       	 	}catch (Exception e) {    	   
+	           // 예외 처리
+	           result.put("state", false);
+	           result.put("msg", "회원 가입 중 오류 발생");
+	           result.put("error", e.getMessage());
+	           System.err.println("오류문 =="+e.getMessage());
+	           e.printStackTrace();
+       	 	}
+       		return result;   	   	
+    }
+    
+    // 필수 필드 유효성 검사
+    private Map<String, Object> validateMemberEntity(MemberEntity memberEntity) {
+    	Map<String, Object> result = new HashMap<>();   		
+    		result.put("state", false);
+    	
+	        if (!StringUtils.hasText(memberEntity.getLoginId())) {        	
+	        	result.put("msg", "loginId는 필수 입력 사항입니다.");
+	        	 return result;
+	        }
+	        if (!StringUtils.hasText(memberEntity.getPasswordHash())) {       	
+	        	result.put("msg", "비밀번호는 필수 입력 사항입니다.");
+	        	 return result;
+	        }
+	        if (!StringUtils.hasText(memberEntity.getEmail())) {     
+	        	result.put("msg", "이메일은 필수 입력 사항입니다.");	
+	        	 return result;
+	        }
+	        // 비밀번호 정책 검사 (예: 길이, 특수 문자 포함 등)
+	        if (memberEntity.getPasswordHash().length() < 8) {      	        	
+	        	result.put("msg", "비밀번호는 최소 8자 이상이어야 합니다.");	
+	        	 return result;
+	        }        
+	    	result.put("state", true);
+	        // 추가 정책 (예: 대소문자, 숫자, 특수 문자 포함 확인)도 여기에 추가 가능
+        return result;
     }
     
     
@@ -57,37 +117,35 @@ public class MemberService  {
         Map<String, Object> result = new HashMap<>();        
        try {
 	        MemberEntity requestDto = modelMapper.map(memberDto, MemberEntity.class);  //MemberRequestDto -> MemberEntity
-	        
-	        
-	        //requestDto.setPasswordHash(passwordEncoder.encode(memberDto.getPasswordHash())); 
+	        	         
 	        Optional<MemberEntity> response = memberRepository.findActiveMemberByLoginId(requestDto); // 가입할떄 쓰라는데?
-	        
 	        
 	        if (response.isEmpty()) {  // 빈값 체크
 	            result.put("state", false);
-	            result.put("msg", "조회된 데이터가 없음");
+	            result.put("msg", "아이디를 확인해주세요");
 	        } else {
-	        	MemberResponseDto responseDto = modelMapper.map(response.get(), MemberResponseDto.class);  // MemberEntity -> MemberResponseDto
-	        	//passwordEncoder.matches(memberDto.getPasswordHash(), response.get().getPasswordHash()); //이게 회원 비밀번호 맞추는거 하는거
-	        //	if(passwordEncoder.matches(memberDto.getPasswordHash(), response.get().getPasswordHash())) {
-	        		//비번 일치?
-	       //	   System.out.println("비번 일치?");
-	        //	}else {
-	        		//비번 틀림?
-	       // 		System.out.println("비번 틀림?");
-	       // 	}
-	            result.put("state", true);
-	            result.put("msg", "회원 조회 성공");
-	            result.put("data", responseDto);
+	        	MemberResponseDto responseDto = modelMapper.map(response.get(), MemberResponseDto.class);  // MemberEntity -> MemberResponseDto	        	//passwordEncoder.matches(memberDto.getPasswordHash(), response.get().getPasswordHash()); //이게 회원 비밀번호 맞추는거 하는거			      			     
+			      if(passwordEncoder.matches(memberDto.getPasswordHash(), response.get().getPasswordHash())) { //패스워드 검증		        	
+				      result.put("state", true);
+			          result.put("msg", "회원 조회 성공");
+			          result.put("data", responseDto);
+			      	return result;
+			      }else {
+				      result.put("state", false);
+			          result.put("msg", "비밀 번호를 확인해주세요");
+			      	return result;
+			      }
 	        }
-       }catch (Exception e) {    	   
-	           // 예외 처리
+       }catch (Exception e) {    		           // 예외 처리   
 	           result.put("state", false);
 	           result.put("msg", "회원 조회 중 오류 발생");
 	           result.put("error", e.getMessage());
+	           System.err.println("오류문 =="+e.getMessage());
+	           e.printStackTrace();
+	           
 	}
        	return result;
-    } 
+    }
     
     
 

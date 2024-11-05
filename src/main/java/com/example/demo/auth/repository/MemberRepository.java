@@ -64,36 +64,32 @@ public class MemberRepository {
 	        return Optional.ofNullable(member);
 	    }
 	    
-	    // 로그인 ID로 활성화된 회원 조회
-	    public Optional<MemberEntity> findActiveMemberByLoginId2(MemberEntity loginId) {
-	    	System.out.println("레파지토리findActiveMemberByLoginId탐===");
-	        String jpql = "SELECT m FROM MemberEntity m WHERE m.loginId = :loginId";
-	        TypedQuery<MemberEntity> query = entityManager.createQuery(jpql, MemberEntity.class);
-	        query.setParameter("loginId", loginId);
-	        List<MemberEntity> result = query.getResultList();
-	        
-	        System.out.println("레파지토리 result==");
-	        System.out.println(result.isEmpty() ? Optional.empty() : Optional.of(result.get(0).getUsername()));
-	        return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
+	    
+	 // 로그인시 회원 조회
+	    public Optional<MemberEntity> findActiveMemberByLoginId(MemberEntity memberEntity) throws Exception{
+		        String jpql = "SELECT m FROM MemberEntity m WHERE m.loginId = :loginId AND m.status = 'ACTIVE'";
+		        TypedQuery<MemberEntity> query = entityManager.createQuery(jpql, MemberEntity.class);
+		        query.setParameter("loginId", memberEntity.getLoginId());
+		        List<MemberEntity> result = query.getResultList();       
+		        return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
 	    }
 	    
-	 // 로그인 ID와 비밀번호로 활성화된 회원 조회
-	    public Optional<MemberEntity> findActiveMemberByLoginId(MemberEntity memberEntity) {
-	        System.out.println("레파지토리 findActiveMemberByLoginIdAndPassword 탐 ===");
+	    // 회원가입 시 ID 중복 체크용으로 사용할 메서드
+	    public boolean existsByLoginId(String loginId) throws Exception {	    		 
+	        String jpql = "SELECT COUNT(m) FROM MemberEntity m WHERE m.loginId = :loginId";
+	        TypedQuery<Long> query = entityManager.createQuery(jpql, Long.class);
+	        query.setParameter("loginId", loginId);
 	        
-	        String jpql = "SELECT m FROM MemberEntity m WHERE m.loginId = :loginId AND m.passwordHash = :passwordHash AND m.status = 'ACTIVE'";
-	        TypedQuery<MemberEntity> query = entityManager.createQuery(jpql, MemberEntity.class);
-	        query.setParameter("loginId", memberEntity.getLoginId());
-	        query.setParameter("passwordHash", memberEntity.getPasswordHash());
-	        
-	        List<MemberEntity> result = query.getResultList();
-	        
-	        System.out.println("레파지토리 result=="+result);
-	        System.out.println("레파지토리 비번=="+memberEntity.getPasswordHash());
-	        System.out.println(result.isEmpty() ? "No results found" : "Found member: " + result.get(0).getUsername());
-	        
-	        return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
+	        Long count = query.getSingleResult();
+	        return count > 0;
 	    }
+	    
+		 // 회원 가입
+	    @Transactional
+	    public void joinMember(MemberEntity memberEntity) {
+	            entityManager.persist(memberEntity);
+	        }
+
 	    
 
 
