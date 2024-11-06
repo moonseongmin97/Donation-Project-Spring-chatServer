@@ -9,15 +9,21 @@ import com.example.demo.auth.dto.MemberDto;
 import com.example.demo.auth.dto.MemberRequestDto;
 import com.example.demo.auth.entity.MemberEntity;
 import com.example.demo.auth.service.MemberService;
+import com.example.demo.common.redis.service.RedisServiceImpl;
 import com.example.demo.common.response.ApiResponse;
+import com.example.demo.common.util.CookieUtil;
+import com.example.demo.common.util.JwtProvider;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.persistence.PersistenceContext;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 	@RestController
 	@RequestMapping("/api")
@@ -25,7 +31,11 @@ import javax.servlet.http.HttpServletRequest;
 
 	    @Autowired
 	    private MemberService memberService;
-
+	    
+	    
+	    @Autowired
+	    private RedisServiceImpl redisService;
+	    
 	    // 모든 회원 조회
 	    @GetMapping("/members")
 	    public List<MemberEntity> getAllMembers() {
@@ -62,11 +72,22 @@ import javax.servlet.http.HttpServletRequest;
 	    
 	    // 회원 조회
 	    @PostMapping(value = "/signIn")
-	    public ResponseEntity selectMember(@RequestBody  MemberRequestDto memberDto) {
+	    public ResponseEntity selectMember(@RequestBody  MemberRequestDto memberDto , HttpServletRequest request , HttpServletResponse res) {
 	    	try {
+	    		Cookie[] cookies  = request.getCookies();	    			    		
+	    		String uuid= CookieUtil.getCookieValue(request, "jwtToken").get();		
+	    		memberDto.setUuid(uuid);
+	    		memberDto.setIpAddress("");	    
+	    		System.out.println("레디스 조회값======"+redisService.getUserIdFromToken(uuid));
 		    	Map<String, Object> result =memberService.findActiveMemberByLoginId(memberDto); 			    		
-		    	ApiResponse response = new ApiResponse((boolean)result.get("state"), result.get("msg").toString() , result.get("data") );		    	
-		    		return ResponseEntity.status(HttpStatus.CREATED).body(response);	            
+		    	ApiResponse response = new ApiResponse((boolean)result.get("state"), result.get("msg").toString() , result.get("data") );
+		    	
+		    	if((boolean)result.get("state")) {
+		    		if(result.get("jwt")!=null) {
+		    			res.addCookie((Cookie) result.get("jwt"));	
+		    		}		    		
+		    	}
+		    	return ResponseEntity.status(HttpStatus.CREATED).body(response);	            
 	        } catch (Exception e) {
 	            ApiResponse response = new ApiResponse(false, "서버 에러로 회원 가입 실패");
 	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);	            

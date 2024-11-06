@@ -2,6 +2,7 @@ package com.example.demo.auth.service;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,12 +13,15 @@ import com.example.demo.auth.dto.MemberResponseDto;
 import com.example.demo.auth.entity.MemberEntity;
 import com.example.demo.auth.mapper.MemberMapper;
 import com.example.demo.auth.repository.MemberRepository;
+import com.example.demo.common.redis.service.RedisServiceImpl;
 import com.example.demo.common.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import javax.servlet.http.Cookie;
 @Service
 public class MemberService  {
 
@@ -29,6 +33,9 @@ public class MemberService  {
     
     @Autowired
     private  ModelMapper modelMapper;
+    
+    @Autowired
+    private RedisServiceImpl redisService;
     
     // 모든 회원 조회
     public List<MemberEntity> findAllMembers() {
@@ -125,10 +132,27 @@ public class MemberService  {
 	            result.put("msg", "아이디를 확인해주세요");
 	        } else {
 	        	MemberResponseDto responseDto = modelMapper.map(response.get(), MemberResponseDto.class);  // MemberEntity -> MemberResponseDto	        	//passwordEncoder.matches(memberDto.getPasswordHash(), response.get().getPasswordHash()); //이게 회원 비밀번호 맞추는거 하는거			      			     
-			      if(passwordEncoder.matches(memberDto.getPasswordHash(), response.get().getPasswordHash())) { //패스워드 검증		        	
+			      if(passwordEncoder.matches(memberDto.getPasswordHash(), response.get().getPasswordHash())) { //패스워드 검증
+			    	  
+	    	            // JWT 생성
+	    	            //String token = JwtProvider.generateToken();
+	    				System.out.println("데이터 값 뽑아왔고 여기서 uuid 뽑아내자 아님 이걸 서비스 로직에서 해버려?===="+responseDto.getUuid());
+	    	            // JWT를 HttpOnly 쿠키로 설정
+	    	            Cookie jwtCookie = new Cookie("jwtToken", responseDto.getUuid());
+	    	            jwtCookie.setHttpOnly(true);
+	    	            jwtCookie.setSecure(false);  // 로컬 개발 환경에서는 false, 배포 환경에서는 true
+	    	            jwtCookie.setPath("/");
+	    	            jwtCookie.setMaxAge(60 * 60); // 1시간 유효
+	    	            redisService.saveToken(responseDto.getUuid(), "test1");
+	    	          result.put("jwt", jwtCookie);
 				      result.put("state", true);
 			          result.put("msg", "회원 조회 성공");
-			          result.put("data", responseDto);
+			          result.put("data", responseDto);			          			          
+		    					          
+			          
+			          System.out.println("레디스 값 리턴 제발!!!!!!"+redisService.getValue("id"));
+			          
+			          
 			      	return result;
 			      }else {
 				      result.put("state", false);

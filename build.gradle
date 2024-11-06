@@ -35,16 +35,20 @@ dependencies {
     implementation 'org.mapstruct:mapstruct:1.5.3.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
 
+	// MapStruct -> 대체용 매핑시킴
+	implementation 'org.modelmapper:modelmapper:3.1.0'
+
     // Lombok-MapStruct Binding
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
-  
-  	implementation 'org.modelmapper:modelmapper:3.1.0'
-  	
-  	
-   implementation 'org.springframework.boot:spring-boot-starter-security'
-    
 
+  	//redis
+  	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+  	//sping security  	
+   	implementation 'org.springframework.boot:spring-boot-starter-security'
+    //jwt
+	implementation 'io.jsonwebtoken:jjwt:0.9.1'
+	
 	implementation group: 'commons-io', name: 'commons-io', version: '2.6'
 	implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.3.3'
 	implementation group: 'org.bgee.log4jdbc-log4j2', name: 'log4jdbc-log4j2-jdbc4.1', version: '1.16'

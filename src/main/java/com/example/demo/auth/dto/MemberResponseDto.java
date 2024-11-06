@@ -20,6 +20,7 @@ public class MemberResponseDto {
     private String createdAt;
     private String updatedAt;
     private String lastLogin;
+    private String uuid;
 
     // 기본 생성자
     public MemberResponseDto() {}
@@ -29,7 +30,7 @@ public class MemberResponseDto {
                              String phoneNumber, String gender, String dateOfBirth, String addressLine1, 
                              String addressLine2, String city, String state, String postalCode, 
                              String country, String profileImageUrl, String status, String createdAt, 
-                             String updatedAt, String lastLogin) {
+                             String updatedAt, String lastLogin,String uuid) {
         this.userId = userId;
         this.loginId = loginId;
         this.username = username;
@@ -48,6 +49,7 @@ public class MemberResponseDto {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.lastLogin = lastLogin;
+        this.uuid = uuid;
     }
 
     public String getLoginId() {
@@ -194,6 +196,14 @@ public class MemberResponseDto {
     public void setUserId(Long userId) {
         this.userId = userId;
     }
+
+	public String getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
 
     // 나머지 필드에 대한 게터와 세터들도 추가
 }

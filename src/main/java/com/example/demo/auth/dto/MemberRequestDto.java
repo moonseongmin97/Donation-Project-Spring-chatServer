@@ -15,9 +15,34 @@ public class MemberRequestDto {
     private String state;
     private String postalCode;
     private String country;
+    private String uuid;
+    private String ipAddress;
 
-    // 기본 생성자
+
+	// 기본 생성자
     public MemberRequestDto() {}
+    
+	// 모든 필드를 초기화하는 생성자
+    public MemberRequestDto(String loginId, String username, String email, String passwordHash, 
+                            String phoneNumber, String gender, String dateOfBirth, String addressLine1, 
+                            String addressLine2, String city, String state, String postalCode, String country , String uuid ,
+                             String ipAddress ) {
+        this.loginId = loginId;
+        this.username = username;
+        this.email = email;
+        this.passwordHash = passwordHash;
+        this.phoneNumber = phoneNumber;
+        this.gender = gender;
+        this.dateOfBirth = dateOfBirth;
+        this.addressLine1 = addressLine1;
+        this.addressLine2 = addressLine2;
+        this.city = city;
+        this.state = state;
+        this.postalCode = postalCode;
+        this.country = country;
+        this.uuid = uuid;
+        this.ipAddress = ipAddress;
+    }
 
     public String getUsername() {
 		return username;
@@ -115,24 +140,13 @@ public class MemberRequestDto {
 		this.country = country;
 	}
 
-	// 모든 필드를 초기화하는 생성자
-    public MemberRequestDto(String loginId, String username, String email, String passwordHash, 
-                            String phoneNumber, String gender, String dateOfBirth, String addressLine1, 
-                            String addressLine2, String city, String state, String postalCode, String country) {
-        this.loginId = loginId;
-        this.username = username;
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.phoneNumber = phoneNumber;
-        this.gender = gender;
-        this.dateOfBirth = dateOfBirth;
-        this.addressLine1 = addressLine1;
-        this.addressLine2 = addressLine2;
-        this.city = city;
-        this.state = state;
-        this.postalCode = postalCode;
-        this.country = country;
-    }
+    public String getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
 
     // 게터와 세터
     public String getLoginId() {
@@ -142,6 +156,14 @@ public class MemberRequestDto {
     public void setLoginId(String loginId) {
         this.loginId = loginId;
     }
+
+	public String getIpAddress() {
+		return ipAddress;
+	}
+
+	public void setIpAddress(String ipAddress) {
+		this.ipAddress = ipAddress;
+	}
 
     // 나머지 필드에 대한 게터와 세터들도 추가
 }
