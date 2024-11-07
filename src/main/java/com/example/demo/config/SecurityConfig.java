@@ -29,17 +29,22 @@ public class SecurityConfig {
 	@Autowired
 	JwtProvider jwtProvider;
 	
-	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		System.out.println("필터체인");
-	    http
-	        .cors(cors ->cors.configurationSource(corsConfigurationSource()))  // CORS ¼³Á¤ Àû¿ë
-	        .csrf(csrf ->csrf.disable())  // CSRF ºñÈ°¼ºÈ­
-	        .authorizeRequests(requests ->requests
-	            .anyRequest().permitAll())
-	        .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);  // JWT 필터 추가
-	    return http.build();
-	}
+	   @Bean
+	    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	        System.out.println("Security filter chain with no authentication");
+
+	        http
+	            .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // CORS 설정 적용
+	            .csrf().disable()  // CSRF 비활성화
+	            .authorizeRequests(auth -> auth
+	                .anyRequest().permitAll()  // 모든 요청을 인증 없이 허용
+	    	         )
+	                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);  // JWT 필터 추가
+
+
+	        return http.build();
+	    }
+	   
 
 
     @Bean

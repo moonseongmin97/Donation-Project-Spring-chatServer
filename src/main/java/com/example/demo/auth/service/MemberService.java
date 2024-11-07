@@ -172,6 +172,70 @@ public class MemberService  {
     }
     
     
+    // ID로 회원 조회
+    public Map<String, Object> logoutMember(MemberRequestDto memberDto) {
+        Map<String, Object> result = new HashMap<>();        
+       try {
+	        MemberEntity requestDto = modelMapper.map(memberDto, MemberEntity.class);  //MemberRequestDto -> MemberEntity
+	        	         
+	        //Optional<MemberEntity> response = memberRepository.findActiveMemberByLoginId(requestDto); // 가입할떄 쓰라는데?
+	        String uuid = memberDto.getUuid();
+	        if(uuid != null && redisService.getTokenKey(uuid)) {	        	
+	        	redisService.deleteToken(memberDto.getUuid());
+	        	//로그 아웃 로그 기록 남기기 
+	        }
+	        
+	        
+	        /*
+	        if (response.isEmpty()) {  // 빈값 체크
+	            result.put("state", false);
+	            result.put("msg", "아이디를 확인해주세요");
+	        } else {
+	        	MemberResponseDto responseDto = modelMapper.map(response.get(), MemberResponseDto.class);  // MemberEntity -> MemberResponseDto	        	//passwordEncoder.matches(memberDto.getPasswordHash(), response.get().getPasswordHash()); //이게 회원 비밀번호 맞추는거 하는거			      			     
+			      if(passwordEncoder.matches(memberDto.getPasswordHash(), response.get().getPasswordHash())) { //패스워드 검증
+			    	  
+	    	            // JWT 생성
+	    	            //String token = JwtProvider.generateToken();
+	    				System.out.println("데이터 값 뽑아왔고 여기서 uuid 뽑아내자 아님 이걸 서비스 로직에서 해버려?===="+responseDto.getUuid());
+	    	            // JWT를 HttpOnly 쿠키로 설정
+	    	            Cookie jwtCookie = new Cookie("jwtToken", responseDto.getUuid());
+	    	            jwtCookie.setHttpOnly(true);
+	    	            jwtCookie.setSecure(false);  // 로컬 개발 환경에서는 false, 배포 환경에서는 true
+	    	            jwtCookie.setPath("/");
+	    	            jwtCookie.setMaxAge(60 * 60); // 1시간 유효
+	    	            redisService.saveToken(responseDto.getUuid(), "test1");
+	    	          result.put("jwt", jwtCookie);
+				      result.put("state", true);
+			          result.put("msg", "회원 조회 성공");
+			          result.put("data", responseDto);			          			          
+		    					          
+			          
+			          System.out.println("레디스 값 리턴 제발!!!!!!"+redisService.getValue("id"));
+			          
+			          
+			      	return result;
+			      }else {
+				      result.put("state", false);
+			          result.put("msg", "비밀 번호를 확인해주세요");
+			      	return result;
+			      }
+	        }
+	        */
+	        
+	        
+       }catch (Exception e) {    		           // 예외 처리   
+	           result.put("state", false);
+	           result.put("msg", "로그아웃 중 오류 발생");
+	           result.put("error", e.getMessage());
+	           System.err.println("오류문 =="+e.getMessage());
+	           e.printStackTrace();
+	           
+	}
+       	return result;
+    }
+    
+    
+    
 
     // 이메일로 회원 조회
     public MemberEntity findMemberByEmail(String email) {

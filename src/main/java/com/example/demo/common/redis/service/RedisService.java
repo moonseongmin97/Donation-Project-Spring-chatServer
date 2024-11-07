@@ -9,6 +9,7 @@ public interface RedisService {
     void deleteValue(String key);
     void pushToList(String key, String value);
     void saveToken(String token, String userId);
+    boolean getTokenKey(String token);
     String getUserIdFromToken(String token);
     void deleteToken(String token);
 }

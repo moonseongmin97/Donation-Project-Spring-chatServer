@@ -37,6 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
+    	System.err.println("jwt필터");
         Cookie[] cookies = request.getCookies();
         String token = null;
 
@@ -50,15 +51,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             System.out.println("쿠키 필터 체킹");
         }
 
-        System.out.println("쿠키 필터 체킹222=="+request.getServerPort()+"==="+request.getHeaderNames());
-        if (token != null && jwtProvider.validateToken(token)) {
-            String userId = redisService.getUserIdFromToken(token);  //레디스에서 값 체크
-
-            if (userId != null) {
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userId, null, new ArrayList<>());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } // 여기 레디스 값 없으면 401 리다이렉트 시켜서 비번 없다고 알려줘야할듯?
+        	System.out.println("필터 -if문 통과 전 =="+token);
+        	//token="g2";
+        if (token != null ) {       	
+        	if(jwtProvider.validateToken(token)) {
+	        	System.out.println("필터 - if문 통과 토큰 값 ==="+token);        	
+	            if (redisService.getTokenKey(token)) { //레디스에 토큰키 확인 
+	                UsernamePasswordAuthenticationToken authentication =
+	                        new UsernamePasswordAuthenticationToken(token, null, new ArrayList<>());
+	                SecurityContextHolder.getContext().setAuthentication(authentication); // 이게 뭐하는 걸까....
+	                
+	                System.out.println("토큰 값 있고 레디스도 있고 통과");
+	            }else {
+	            	System.out.println("토큰 값 있지만 레디스에 없음");
+	                // 토큰 만료로 인해 401 응답 설정
+	                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+	                response.getWriter().write("토큰이 만료되었습니다. 다시 로그인 해주세요.");
+	                response.getWriter().flush();
+	                return;           	
+	            	//토큰값 만료로 로그인 다시 요청
+	                // 여기 레디스 값 없으면 401 리다이렉트 시켜서 비번 없다고 알려줘야할듯?           
+	            }  
+        	}else {
+                // 유효하지 않은 토큰일 경우 401 응답 설정
+        		System.out.println("유효하지 않은 토큰");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("유효하지 않은 토큰입니다.");
+                response.getWriter().flush();
+                return;       		
+        	}
         }
 
         chain.doFilter(request, response);

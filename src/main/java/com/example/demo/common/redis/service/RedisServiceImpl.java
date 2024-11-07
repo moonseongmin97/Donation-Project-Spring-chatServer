@@ -48,6 +48,16 @@ public class RedisServiceImpl implements RedisService {
     public void saveToken(String token, String userId) {
         redisTemplate.opsForValue().set(token, userId, 1, TimeUnit.HOURS); // 1시간 만료
     }
+    
+    //키 값 확인
+    @Override 
+    public boolean getTokenKey(String token) {
+        if (redisTemplate.hasKey(token)) {
+            return redisTemplate.hasKey(token);
+        }
+        return false; // 또는 토큰이 없을 때의 처리를 필요에 따라 추가
+    }
+    
     @Override
     public String getUserIdFromToken(String token) {
         return (String) redisTemplate.opsForValue().get(token);
