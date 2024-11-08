@@ -73,10 +73,14 @@ import javax.servlet.http.HttpServletResponse;
 	    @PostMapping("/logout")
 	    public ResponseEntity logout(@RequestBody  MemberRequestDto memberDto ,HttpServletRequest request,  HttpServletResponse res) throws Exception {
     		System.out.println("로그아웃 logout ======");
-    		Cookie[] cookies  = request.getCookies();	    			    		
-    		String uuid=CookieUtil.getCookieValue(request, "jwtToken").get();		
-    		memberDto.setUuid(uuid);
-    		memberDto.setIpAddress("");	
+    		Cookie[] cookies  = request.getCookies();
+    		boolean jwtCheck = CookieUtil.getCookieValue(request, "jwtToken").isEmpty(); // 쿠키 안에 토큰 값 확인
+    		String uuid= null;
+    		if(!jwtCheck) {
+    			uuid= CookieUtil.getCookieValue(request, "jwtToken").get();
+        		memberDto.setUuid(uuid);
+        		memberDto.setIpAddress("");	
+    		}
     		
     		if (uuid == null) {
     			ApiResponse response = new ApiResponse(true,"로그아웃 성공");
@@ -87,11 +91,7 @@ import javax.servlet.http.HttpServletResponse;
 	    	Map<String, Object> result =memberService.findActiveMemberByLoginId(memberDto); 			    		
 	    	ApiResponse response = new ApiResponse((boolean)result.get("state"), result.get("msg").toString() , result.get("data") );
 	    	
-	    	if((boolean)result.get("state")) {
-	    		if(result.get("jwt")!=null) {
-	    			res.addCookie((Cookie) result.get("jwt"));	
-	    		}		    		
-	    	}
+
 	    	return ResponseEntity.status(HttpStatus.CREATED).body(response);	
 	    	
 	    	
@@ -108,12 +108,19 @@ import javax.servlet.http.HttpServletResponse;
 	    public ResponseEntity selectMember(@RequestBody  MemberRequestDto memberDto , HttpServletRequest request , HttpServletResponse res) {
 	    	try {
 	    		System.out.println("회원조회 컨트롤러 signIn======");
-	    		Cookie[] cookies  = request.getCookies();	    			    		
-	    		String uuid=  null;// CookieUtil.getCookieValue(request, "jwtToken").get();
-	    		// 여기 안에서가 쿠키값 비었을떄 문제임  원인 분석하자 System.out.println("값체크=="+CookieUtil.getCookieValue(request, "jwtToken").get());
-	    		memberDto.setUuid(uuid);
-	    		memberDto.setIpAddress("");	    
-	    		//System.out.println("회원조회 컨트롤러 - 레디스 조회값======"+redisService.getUserIdFromToken(uuid));
+	    		Cookie[] cookies  = request.getCookies();	
+	    		 //1 쿠키 값은 있다  
+  	    		// 2. 쿠키 값 안에 토큰 값도 있다.
+	    		
+	    		boolean jwtCheck = CookieUtil.getCookieValue(request, "jwtToken").isEmpty(); // 쿠키 안에 토큰 값 확인	    		
+	    		if(cookies != null && cookies.length > 0 && !jwtCheck) {
+		    		String uuid=  CookieUtil.getCookieValue(request, "jwtToken").get();
+		    		memberDto.setUuid(uuid);
+		    		memberDto.setIpAddress("");	    
+		    		//System.out.println("회원조회 컨트롤러 - 레디스 조회값======"+redisService.getUserIdFromToken(uuid));	    			
+	    		}
+	    		
+
 		    	Map<String, Object> result =memberService.findActiveMemberByLoginId(memberDto); 			    		
 		    	ApiResponse response = new ApiResponse((boolean)result.get("state"), result.get("msg").toString() , result.get("data") );
 		    	

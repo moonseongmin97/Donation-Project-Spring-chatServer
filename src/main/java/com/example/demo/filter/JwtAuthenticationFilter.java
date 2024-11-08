@@ -53,8 +53,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         	System.out.println("필터 -if문 통과 전 =="+token);
         	//token="g2";
-        if (token != null ) {       	
-        	if(jwtProvider.validateToken(token)) {
+        	
+        if (token != null ) {  // 토큰 값 없음... 비회원       	
+        	//if(jwtProvider.validateToken(token)) {   //토큰 값 존재 회원 이거 왜 해야함?
+        		if(true) {   //토큰 값 존재 회원
 	        	System.out.println("필터 - if문 통과 토큰 값 ==="+token);        	
 	            if (redisService.getTokenKey(token)) { //레디스에 토큰키 확인 
 	                UsernamePasswordAuthenticationToken authentication =
@@ -62,7 +64,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	                SecurityContextHolder.getContext().setAuthentication(authentication); // 이게 뭐하는 걸까....
 	                
 	                System.out.println("토큰 값 있고 레디스도 있고 통과");
-	            }else {
+	            }else {                                   //토큰 값 존재 회원 but 레디스 없음 만료?
 	            	System.out.println("토큰 값 있지만 레디스에 없음");
 	                // 토큰 만료로 인해 401 응답 설정
 	                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -70,7 +72,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	                response.getWriter().flush();
 	                return;           	
 	            	//토큰값 만료로 로그인 다시 요청
-	                // 여기 레디스 값 없으면 401 리다이렉트 시켜서 비번 없다고 알려줘야할듯?           
+	                // 여기 레디스 값 없으면 401 리다이렉트 시켜서 비번 없다고 알려줌 할듯?           
 	            }  
         	}else {
                 // 유효하지 않은 토큰일 경우 401 응답 설정

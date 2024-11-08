@@ -33,6 +33,7 @@ public class JwtProvider {
             Jwts.parser().setSigningKey(jwtConfig.getSecretKey()).parseClaimsJws(token);
             return true;
         } catch (Exception e) {
+        	e.printStackTrace();
             return false;
         }
     }
