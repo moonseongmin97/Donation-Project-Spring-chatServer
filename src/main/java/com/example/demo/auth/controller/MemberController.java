@@ -29,7 +29,13 @@ import javax.servlet.http.HttpServletResponse;
 	@RequestMapping("/api")
 	public class MemberController {
 
-	    @Autowired
+	    private static final int HashMap = 0;
+
+
+		private static final int String = 0;
+
+
+		@Autowired
 	    private MemberService memberService;
 	    
 	    
@@ -64,9 +70,32 @@ import javax.servlet.http.HttpServletResponse;
 	    }
 	    
 	    // 회원 조회
-	    @PostMapping("/select")
-	    public void select(HttpServletRequest request,   @RequestBody MemberDto member) throws Exception {
-	        //memberService.findMemberById(member);
+	    @PostMapping("/loginCheck")
+	    public ResponseEntity select(@RequestBody  MemberRequestDto memberDto ,HttpServletRequest request,  HttpServletResponse res) throws Exception {
+	    	try {
+	    	System.out.println("로그인 체킹 컨트롤러 ~~~");
+    		Cookie[] cookies  = request.getCookies();
+    		boolean jwtCheck = CookieUtil.getCookieValue(request, "jwtToken").isEmpty(); // 쿠키 안에 토큰 값 확인
+    		String uuid= null;
+    		if(!jwtCheck) {
+    			uuid= CookieUtil.getCookieValue(request, "jwtToken").get();
+        		memberDto.setUuid(uuid);
+        		memberDto.setIpAddress("");	
+    		}
+    		Map<String, Object> result =memberService.findSessionMember(memberDto);
+	        
+    		if(result.get("jwt")!=null) {
+    			res.addCookie((Cookie) result.get("jwt"));	
+    		}		
+    		
+	        ApiResponse response = new ApiResponse((boolean)result.get("state"), result.get("msg").toString() , result.get("data") );
+	    	return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+	    	}catch(Exception e) {
+	    		e.getStackTrace();
+	            ApiResponse response = new ApiResponse(false, "회원 체크 실패");
+	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);	            
+	    	}
 	    }
 	    
 	    // 로그 아웃
@@ -80,22 +109,24 @@ import javax.servlet.http.HttpServletResponse;
     			uuid= CookieUtil.getCookieValue(request, "jwtToken").get();
         		memberDto.setUuid(uuid);
         		memberDto.setIpAddress("");	
+    		}else {
+    			
+    			
     		}
-    		
-    		if (uuid == null) {
-    			ApiResponse response = new ApiResponse(true,"로그아웃 성공");
-    		    return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    		}
-    		
+   
     		//System.out.println("회원조회 컨트롤러 - 레디스 조회값======"+redisService.getUserIdFromToken(uuid));
-	    	Map<String, Object> result =memberService.findActiveMemberByLoginId(memberDto); 			    		
-	    	ApiResponse response = new ApiResponse((boolean)result.get("state"), result.get("msg").toString() , result.get("data") );
+	    	Map<String, Object> result =memberService.logoutMember(memberDto);
 	    	
+	    	  Cookie jwtCookie = new Cookie("jwtToken", null); // 토큰 이름 지정
+	    	    jwtCookie.setHttpOnly(true);
+	    	    jwtCookie.setMaxAge(0); // 만료 시간 0으로 설정
+	    	    jwtCookie.setPath("/"); // 쿠키 경로 설정
 
+	    	    res.addCookie(jwtCookie); // 응답에 쿠키 추가
+	    	
+	    	ApiResponse response = new ApiResponse((boolean)result.get("state"), result.get("msg").toString() , result.get("data") );	    	
 	    	return ResponseEntity.status(HttpStatus.CREATED).body(response);	
 	    	
-	    	
-	        //memberService.findMemberById(member);
 	    	
 	    	
 	    }

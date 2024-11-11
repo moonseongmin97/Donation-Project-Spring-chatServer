@@ -54,10 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         	System.out.println("필터 -if문 통과 전 =="+token);
         	//token="g2";
         	
-        if (token != null ) {  // 토큰 값 없음... 비회원       	
-        	//if(jwtProvider.validateToken(token)) {   //토큰 값 존재 회원 이거 왜 해야함?
-        		if(true) {   //토큰 값 존재 회원
-	        	System.out.println("필터 - if문 통과 토큰 값 ==="+token);        	
+        if (token != null ) {  // 토큰 값 없음... 비회원       	     	
 	            if (redisService.getTokenKey(token)) { //레디스에 토큰키 확인 
 	                UsernamePasswordAuthenticationToken authentication =
 	                        new UsernamePasswordAuthenticationToken(token, null, new ArrayList<>());
@@ -67,6 +64,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	            }else {                                   //토큰 값 존재 회원 but 레디스 없음 만료?
 	            	System.out.println("토큰 값 있지만 레디스에 없음");
 	                // 토큰 만료로 인해 401 응답 설정
+    	            Cookie jwtCookie = new Cookie("jwtToken", token);
+		    	    jwtCookie.setHttpOnly(true);
+		    	    jwtCookie.setMaxAge(0); // 만료 시간 0으로 설정
+		    	    jwtCookie.setPath("/"); // 쿠키 경로 설정		
+		    	    
+		    	    response.addCookie(jwtCookie);
+		    	    
 	                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 	                response.getWriter().write("토큰이 만료되었습니다. 다시 로그인 해주세요.");
 	                response.getWriter().flush();
@@ -74,14 +78,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	            	//토큰값 만료로 로그인 다시 요청
 	                // 여기 레디스 값 없으면 401 리다이렉트 시켜서 비번 없다고 알려줌 할듯?           
 	            }  
-        	}else {
-                // 유효하지 않은 토큰일 경우 401 응답 설정
-        		System.out.println("유효하지 않은 토큰");
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("유효하지 않은 토큰입니다.");
-                response.getWriter().flush();
-                return;       		
-        	}
         }
 
         chain.doFilter(request, response);

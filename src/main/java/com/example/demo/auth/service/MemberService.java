@@ -13,6 +13,7 @@ import com.example.demo.auth.dto.MemberResponseDto;
 import com.example.demo.auth.entity.MemberEntity;
 import com.example.demo.auth.mapper.MemberMapper;
 import com.example.demo.auth.repository.MemberRepository;
+import com.example.demo.common.dto.ResponseDto;
 import com.example.demo.common.redis.service.RedisServiceImpl;
 import com.example.demo.common.util.StringUtils;
 
@@ -172,55 +173,24 @@ public class MemberService  {
     }
     
     
-    // ID로 회원 조회
+    // 로그아웃 시키기
     public Map<String, Object> logoutMember(MemberRequestDto memberDto) {
         Map<String, Object> result = new HashMap<>();        
        try {
 	        MemberEntity requestDto = modelMapper.map(memberDto, MemberEntity.class);  //MemberRequestDto -> MemberEntity
 	        	         
-	        //Optional<MemberEntity> response = memberRepository.findActiveMemberByLoginId(requestDto); // 가입할떄 쓰라는데?
 	        String uuid = memberDto.getUuid();
-	        if(uuid != null && redisService.getTokenKey(uuid)) {	        	
-	        	redisService.deleteToken(memberDto.getUuid());
-	        	//로그 아웃 로그 기록 남기기 
+	        if(uuid != null && redisService.getTokenKey(uuid)) {
+	        	System.out.println("레디스 토큰 삭제 시작 ==");
+	        	redisService.deleteToken(memberDto.getUuid());	        
+	        	//로그 아웃 로그 기록 남기기
+	        	
+	        	
+	        	
+		           result.put("state", true);
+		           result.put("msg", "로그아웃 성공");
+		           return result;
 	        }
-	        
-	        
-	        /*
-	        if (response.isEmpty()) {  // 빈값 체크
-	            result.put("state", false);
-	            result.put("msg", "아이디를 확인해주세요");
-	        } else {
-	        	MemberResponseDto responseDto = modelMapper.map(response.get(), MemberResponseDto.class);  // MemberEntity -> MemberResponseDto	        	//passwordEncoder.matches(memberDto.getPasswordHash(), response.get().getPasswordHash()); //이게 회원 비밀번호 맞추는거 하는거			      			     
-			      if(passwordEncoder.matches(memberDto.getPasswordHash(), response.get().getPasswordHash())) { //패스워드 검증
-			    	  
-	    	            // JWT 생성
-	    	            //String token = JwtProvider.generateToken();
-	    				System.out.println("데이터 값 뽑아왔고 여기서 uuid 뽑아내자 아님 이걸 서비스 로직에서 해버려?===="+responseDto.getUuid());
-	    	            // JWT를 HttpOnly 쿠키로 설정
-	    	            Cookie jwtCookie = new Cookie("jwtToken", responseDto.getUuid());
-	    	            jwtCookie.setHttpOnly(true);
-	    	            jwtCookie.setSecure(false);  // 로컬 개발 환경에서는 false, 배포 환경에서는 true
-	    	            jwtCookie.setPath("/");
-	    	            jwtCookie.setMaxAge(60 * 60); // 1시간 유효
-	    	            redisService.saveToken(responseDto.getUuid(), "test1");
-	    	          result.put("jwt", jwtCookie);
-				      result.put("state", true);
-			          result.put("msg", "회원 조회 성공");
-			          result.put("data", responseDto);			          			          
-		    					          
-			          
-			          System.out.println("레디스 값 리턴 제발!!!!!!"+redisService.getValue("id"));
-			          
-			          
-			      	return result;
-			      }else {
-				      result.put("state", false);
-			          result.put("msg", "비밀 번호를 확인해주세요");
-			      	return result;
-			      }
-	        }
-	        */
 	        
 	        
        }catch (Exception e) {    		           // 예외 처리   
@@ -233,6 +203,57 @@ public class MemberService  {
 	}
        	return result;
     }
+    
+    
+    // 쿠키 값으로 로그인 세션 토큰 체크
+    public Map<String, Object> findSessionMember(MemberRequestDto memberDto) {
+        Map<String, Object> result = new HashMap<>();
+        MemberResponseDto  responseDto = new  MemberResponseDto();
+       try {
+    	   System.out.println("세션 토큰 값 컨트롤러 시작");
+	        MemberEntity requestDto = modelMapper.map(memberDto, MemberEntity.class);  //MemberRequestDto -> MemberEntity	        
+	        //Optional<MemberEntity> response = memberRepository.findActiveMemberByLoginId(requestDto); // 가입할떄 쓰라는데?
+	        String uuid = memberDto.getUuid();
+	        if(uuid != null) {
+	        	if(redisService.getTokenKey(uuid)) {	        	
+	        	String sessionResult = redisService.getUserIdFromToken(memberDto.getUuid());
+	        	//로그 아웃 로그 기록 남기기 
+	        	 responseDto.setLoginYn(Boolean.TRUE);
+		           result.put("state", true);
+		           result.put("msg", "로그인 토큰 존재");
+		           result.put("data", responseDto);
+		           return result;
+	        	}else {
+
+    	            Cookie jwtCookie = new Cookie("jwtToken", memberDto.getUuid());
+		    	    jwtCookie.setHttpOnly(true);
+		    	    jwtCookie.setMaxAge(0); // 만료 시간 0으로 설정
+		    	    jwtCookie.setPath("/"); // 쿠키 경로 설정		
+		    	    
+		    	    result.put("jwt", jwtCookie);	    	    
+			        result.put("state", false);
+			        result.put("msg", "로그인 토큰 확인");
+	        	}
+
+	        }else {
+	        		//비로그인 사용장 정상케이스임
+	        	   responseDto.setLoginYn(Boolean.FALSE);
+		           result.put("state", true);
+		           result.put("data", responseDto);
+		           result.put("msg", "로그인 안된 사용자");		           
+	        }	       	       
+	        
+       }catch (Exception e) {    		           // 예외 처리   
+	           result.put("state", false);
+	           result.put("msg", "로그아웃 중 오류 발생");
+	           result.put("error", e.getMessage());
+	           System.err.println("오류문 =="+e.getMessage());
+	           e.printStackTrace();
+	           
+	}
+       	return result;
+    }
+    
     
     
     

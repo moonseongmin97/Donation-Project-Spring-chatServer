@@ -21,8 +21,11 @@ public class MemberResponseDto {
     private String updatedAt;
     private String lastLogin;
     private String uuid;
+    private boolean loginYn;
 
-    // 기본 생성자
+
+
+	// 기본 생성자
     public MemberResponseDto() {}
 
     // 모든 필드를 초기화하는 생성자
@@ -30,7 +33,7 @@ public class MemberResponseDto {
                              String phoneNumber, String gender, String dateOfBirth, String addressLine1, 
                              String addressLine2, String city, String state, String postalCode, 
                              String country, String profileImageUrl, String status, String createdAt, 
-                             String updatedAt, String lastLogin,String uuid) {
+                             String updatedAt, String lastLogin,String uuid ,boolean loginYn) {
         this.userId = userId;
         this.loginId = loginId;
         this.username = username;
@@ -50,6 +53,7 @@ public class MemberResponseDto {
         this.updatedAt = updatedAt;
         this.lastLogin = lastLogin;
         this.uuid = uuid;
+        this.loginYn = loginYn;
     }
 
     public String getLoginId() {
@@ -203,6 +207,14 @@ public class MemberResponseDto {
 
 	public void setUuid(String uuid) {
 		this.uuid = uuid;
+	}
+	
+    public boolean getLoginYn() {
+		return loginYn;
+	}
+
+	public void setLoginYn(boolean loginYn) {
+		this.loginYn = loginYn;
 	}
 
     // 나머지 필드에 대한 게터와 세터들도 추가

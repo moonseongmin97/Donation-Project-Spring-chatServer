@@ -46,7 +46,7 @@ public class RedisServiceImpl implements RedisService {
     //인터페이스 추가 필요
     @Override
     public void saveToken(String token, String userId) {
-        redisTemplate.opsForValue().set(token, userId, 1, TimeUnit.HOURS); // 1시간 만료
+        redisTemplate.opsForValue().set(token, userId, 1, TimeUnit.MINUTES); // 1시간 만료
     }
     
     //키 값 확인
@@ -62,6 +62,7 @@ public class RedisServiceImpl implements RedisService {
     public String getUserIdFromToken(String token) {
         return (String) redisTemplate.opsForValue().get(token);
     }
+    //토큰 값 지우기
     @Override
     public void deleteToken(String token) {
         redisTemplate.delete(token);
