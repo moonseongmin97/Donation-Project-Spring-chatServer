@@ -29,10 +29,6 @@ import javax.servlet.http.HttpServletResponse;
 	@RequestMapping("/api")
 	public class MemberController {
 
-	    private static final int HashMap = 0;
-
-
-		private static final int String = 0;
 
 
 		@Autowired
@@ -73,7 +69,6 @@ import javax.servlet.http.HttpServletResponse;
 	    @PostMapping("/loginCheck")
 	    public ResponseEntity select(@RequestBody  MemberRequestDto memberDto ,HttpServletRequest request,  HttpServletResponse res) throws Exception {
 	    	try {
-	    	System.out.println("로그인 체킹 컨트롤러 ~~~");
     		Cookie[] cookies  = request.getCookies();
     		boolean jwtCheck = CookieUtil.getCookieValue(request, "jwtToken").isEmpty(); // 쿠키 안에 토큰 값 확인
     		String uuid= null;
