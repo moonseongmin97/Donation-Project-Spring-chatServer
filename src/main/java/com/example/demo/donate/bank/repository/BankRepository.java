@@ -29,10 +29,11 @@ public class BankRepository {
 	private EntityManager entityManager;
 	
     // 모든 은행 리스트 조회
-    public List<BankEntity> findAllBanks() {
+    public List<BankEntity> findAllBanks()  throws Exception{
         String jpql = "SELECT b FROM BankEntity b";
-        TypedQuery<BankEntity> query = entityManager.createQuery(jpql, BankEntity.class);
-        return query.getResultList();
+                
+        List<BankEntity> query = entityManager.createQuery(jpql, BankEntity.class).getResultList();
+        return query;
     }
 
     // 은행 ID로 특정 은행 조회

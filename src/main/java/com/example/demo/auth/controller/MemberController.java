@@ -72,19 +72,26 @@ import javax.servlet.http.HttpServletResponse;
     		Cookie[] cookies  = request.getCookies();
     		boolean jwtCheck = CookieUtil.getCookieValue(request, "jwtToken").isEmpty(); // 쿠키 안에 토큰 값 확인
     		String uuid= null;
+    		HttpStatus httpStatus = HttpStatus.BAD_REQUEST; 
+    		
+    		
     		if(!jwtCheck) {
     			uuid= CookieUtil.getCookieValue(request, "jwtToken").get();
         		memberDto.setUuid(uuid);
         		memberDto.setIpAddress("");	
     		}
-    		Map<String, Object> result =memberService.findSessionMember(memberDto);
-	        
+    		
+    		Map<String, Object> result =memberService.findSessionMember(memberDto);	        
     		if(result.get("jwt")!=null) {
     			res.addCookie((Cookie) result.get("jwt"));	
-    		}		
+    		}		    	
     		
 	        ApiResponse response = new ApiResponse((boolean)result.get("state"), result.get("msg").toString() , result.get("data") );
-	    	return ResponseEntity.status(HttpStatus.CREATED).body(response);
+	        httpStatus = ((boolean) result.get("state")) ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST ;
+
+	        	return ResponseEntity.status(httpStatus).body(response);
+	        
+	    	
 
 	    	}catch(Exception e) {
 	    		e.getStackTrace();

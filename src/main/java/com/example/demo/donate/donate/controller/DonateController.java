@@ -13,6 +13,7 @@ import com.example.demo.common.redis.service.RedisServiceImpl;
 import com.example.demo.common.response.ApiResponse;
 import com.example.demo.common.util.CookieUtil;
 import com.example.demo.common.util.JwtProvider;
+import com.example.demo.donate.bank.dto.BankRequestDto;
 import com.example.demo.donate.donate.dto.DonateRequestDto;
 import com.example.demo.donate.donate.service.DonateService;
 
@@ -35,14 +36,14 @@ import javax.servlet.http.HttpServletResponse;
 		@Autowired
 		DonateService donateService; 
 		
-	    // ID로 회원 조회
-	    //@GetMapping("/bankList")	 
-	    public Optional<MemberEntity> getBank(@RequestBody DonateRequestDto danate) {
-
-	    	
-	    	
-	    	return null;
-	    }
+		@PostMapping("/donateInsert")
+		public ResponseEntity donateInsert(@RequestBody DonateRequestDto donateRequestDto ,HttpServletRequest req,  HttpServletResponse res) {
+						
+			Map<String,Object> result = donateService.donateInsert(donateRequestDto);
+			
+			ApiResponse response = new ApiResponse((boolean)result.get("state"), result.get("msg").toString() , result.get("data"));			
+			return ResponseEntity.status(HttpStatus.CREATED).body(response);					
+		}
 	    
 	    
 	}
