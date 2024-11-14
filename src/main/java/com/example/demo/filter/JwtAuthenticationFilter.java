@@ -12,11 +12,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.example.demo.auth.dto.MemberRequestDto;
+import com.example.demo.auth.dto.MemberResponseDto;
 import com.example.demo.common.redis.service.RedisService;
 import com.example.demo.common.util.JwtProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 
 
 
@@ -37,7 +41,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-    	System.err.println("jwt필터");
         Cookie[] cookies = request.getCookies();
         String token = null;
 
@@ -56,7 +59,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         	
         if (token != null ) {  // 토큰 값 없음... 비회원       	     	
 	            if (redisService.getTokenKey(token)) { //레디스에 토큰키 확인 
-	                UsernamePasswordAuthenticationToken authentication =
+	            	ObjectMapper objectMapper = new ObjectMapper();
+	            	String userInfo=redisService.getUserIdFromToken(token);  // -> 여기가 반환값이 스트링
+	            	
+	            	
+	            	//request 변경하자!!
+	            	MemberResponseDto  userInfoMap = objectMapper.readValue(userInfo, MemberResponseDto.class);    //역직렬화
+	            	
+                    System.out.println("userInfoMap==="+userInfoMap.getUsername()); 
+                    
+                    
+	            	UsernamePasswordAuthenticationToken authentication =
 	                        new UsernamePasswordAuthenticationToken(token, null, new ArrayList<>());
 	                SecurityContextHolder.getContext().setAuthentication(authentication); // 이게 뭐하는 걸까....
 	                

@@ -16,6 +16,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,32 @@ public class DonateRepository {
         List<DonateEntity> result = query.getResultList();       
         return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));            	    	    
     }
-	
+    
+    // 상위 5명의 기부자 조회
+    @Transactional
+    public List<DonateEntity> findTop5Donors(DonateEntity donateEntity) {
+    	String jpql = "SELECT d.userName, SUM(d.amount) " +
+                "FROM DonateEntity d " +
+                "WHERE d.donationDate >= CURRENT_DATE - INTERVAL '2 MONTH' " +
+                "GROUP BY d.userName " +
+                "ORDER BY SUM(d.amount) DESC";
+    	
+           TypedQuery<DonateEntity> query = entityManager.createQuery(jpql, DonateEntity.class);       
+        query.setMaxResults(5);  // 상위 5명 제한
+        return query.getResultList();
+    }
+    
+  
+    
+    	    //  토탈 금액 조회
+    	    @Transactional
+    	    public Optional<BigDecimal> totalDonate(DonateEntity donateEntity) {
+    	    	//String jpql = "select m from DonateEntity m where m.is_cancelled = false";  
+    	        String jpql = "SELECT SUM(m.amount) FROM DonateEntity m WHERE m.isCancelled = false";
+    	        TypedQuery<BigDecimal> query = entityManager.createQuery(jpql, BigDecimal.class);
+    	        BigDecimal totalAmount = query.getSingleResult();
+    	        return Optional.ofNullable(totalAmount); // 합계가 null일 경우 Optional로 처리
+    	    }
     
 
 	

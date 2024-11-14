@@ -17,6 +17,7 @@ public class MemberRequestDto {
     private String country;
     private String uuid;
     private String ipAddress;
+    private boolean loginYn;
 
 
 	// 기본 생성자
@@ -163,6 +164,14 @@ public class MemberRequestDto {
 
 	public void setIpAddress(String ipAddress) {
 		this.ipAddress = ipAddress;
+	}
+
+	public boolean getLoginYn() {
+		return loginYn;
+	}
+
+	public void setLoginYn(boolean loginYn) {
+		this.loginYn = loginYn;
 	}
 
     // 나머지 필드에 대한 게터와 세터들도 추가

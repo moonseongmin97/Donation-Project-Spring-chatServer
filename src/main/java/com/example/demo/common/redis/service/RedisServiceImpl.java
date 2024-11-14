@@ -45,8 +45,8 @@ public class RedisServiceImpl implements RedisService {
     
     //인터페이스 추가 필요
     @Override
-    public void saveToken(String token, String userId) {
-        redisTemplate.opsForValue().set(token, userId, 1, TimeUnit.HOURS); // 1시간 만료
+    public void saveToken(String token, Object userInfo) {
+        redisTemplate.opsForValue().set(token, userInfo, 1, TimeUnit.HOURS); // 1시간 만료
     }
     
     //키 값 확인

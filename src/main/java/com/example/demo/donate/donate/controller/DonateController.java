@@ -36,11 +36,37 @@ import javax.servlet.http.HttpServletResponse;
 		@Autowired
 		DonateService donateService; 
 		
+		
+		
+		 /**
+	     * 기부 등록 후 기부 정보 반환합니다.
+	     *
+	     * @param donateRequestDto 기부 요청 정보를 담은 DTO
+	     * @param req HttpServletRequest 요청 객체
+	     * @param res HttpServletResponse 응답 객체
+	     * @return 등록된 기부 정보 및 메시지를 담은 Map 객체
+	     */		
 		@PostMapping("/donateInsert")
-		public ResponseEntity donateInsert(@RequestBody DonateRequestDto donateRequestDto ,HttpServletRequest req,  HttpServletResponse res) {
+		public ResponseEntity donateInsert(@RequestBody DonateRequestDto donateRequestDto ,HttpServletRequest req,  HttpServletResponse res) {						
+			Map<String,Object> result = donateService.donateInsert(donateRequestDto);			
+			ApiResponse response = new ApiResponse((boolean)result.get("state"), result.get("msg").toString() , result.get("data"));			
+			return ResponseEntity.status(HttpStatus.CREATED).body(response);					
+		}
+		
+		
+		 /**
+	     * 전체 기부 금액을 조회하여 반환합니다.
+	     *
+	     * @param donateRequestDto 기부 요청 정보를 담은 DTO
+	     * @param req HttpServletRequest 요청 객체
+	     * @param res HttpServletResponse 응답 객체
+	     * @return 총 기부 금액 및 상태 메시지를 담은 Map 객체
+	     */
+		@PostMapping("/donateTotal")
+		public ResponseEntity donateTotal(@RequestBody DonateRequestDto donateRequestDto ,HttpServletRequest req,  HttpServletResponse res) {
 						
-			Map<String,Object> result = donateService.donateInsert(donateRequestDto);
-			
+			Map<String,Object> result = donateService.donateTotal(donateRequestDto);
+			System.out.println(result);
 			ApiResponse response = new ApiResponse((boolean)result.get("state"), result.get("msg").toString() , result.get("data"));			
 			return ResponseEntity.status(HttpStatus.CREATED).body(response);					
 		}

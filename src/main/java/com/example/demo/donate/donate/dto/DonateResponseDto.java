@@ -20,6 +20,7 @@ public class DonateResponseDto {
  private Long bankId;
  private LocalDateTime lastUpdatedDate;
  private String notes;
+ private BigDecimal totalAmount;
  
  
  
@@ -116,6 +117,12 @@ public String getNotes() {
 }
 public void setNotes(String notes) {
 	this.notes = notes;
+}
+public BigDecimal getTotalAmount() {
+	return totalAmount;
+}
+public void setTotalAmount(BigDecimal totalAmount) {
+	this.totalAmount = totalAmount;
 }
  
  

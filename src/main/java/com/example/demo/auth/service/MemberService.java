@@ -16,6 +16,8 @@ import com.example.demo.auth.repository.MemberRepository;
 import com.example.demo.common.dto.ResponseDto;
 import com.example.demo.common.redis.service.RedisServiceImpl;
 import com.example.demo.common.util.StringUtils;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,255 +25,242 @@ import java.util.Map;
 import java.util.Optional;
 
 import javax.servlet.http.Cookie;
+
 @Service
-public class MemberService  {
+public class MemberService {
 
-	@Autowired  
-    private  MemberRepository memberRepository;
+    @Autowired  
+    private MemberRepository memberRepository;
 
-	@Autowired 
-	private  PasswordEncoder passwordEncoder;
+    @Autowired 
+    private PasswordEncoder passwordEncoder;
     
     @Autowired
-    private  ModelMapper modelMapper;
+    private ModelMapper modelMapper;
     
     @Autowired
     private RedisServiceImpl redisService;
-    
-    // 모든 회원 조회
+
+    /**
+     * 모든 회원 조회
+     * @return List<MemberEntity> 모든 회원의 목록
+     */
     public List<MemberEntity> findAllMembers() {
-    	System.out.println("두번쨰도 됨");
         return memberRepository.findAll();
     }
 
-    // ID로 회원 조회
+    /**
+     * ID로 회원 조회
+     * @param memberDto 조회할 회원의 정보를 담은 DTO
+     * @return Optional<MemberEntity> 회원 엔티티 객체를 Optional로 감싸서 반환
+     */
     public Optional<MemberEntity> findMemberById(MemberRequestDto memberDto) {
-    	//System.out.println("실행333===");
-    	//String formattedUserId = String.format("%06d", ""); // 자바에서 6자리로 포맷팅
-    	MemberEntity a = new MemberEntity();
-    	a.setLoginId(memberDto.getLoginId().toString());
-    	a.setUserId(Long.parseLong("111111"));
-    	///System.out.println("비즈니스로직==="+a.getUserId());
-        return memberRepository.findById(a.getUserId());
+        MemberEntity memberEntity = new MemberEntity();
+        memberEntity.setLoginId(memberDto.getLoginId().toString());
+        memberEntity.setUserId(Long.parseLong("111111"));
+        return memberRepository.findById(memberEntity.getUserId());
     }
-    
-    
-    // 회원 가입
+
+    /**
+     * 회원 가입
+     * @param requestDto 회원 가입 정보를 담은 DTO
+     * @return Map<String, Object> 상태 메시지를 담은 결과
+     */
     public Map<String, Object> joinMember(MemberRequestDto requestDto) {
-        Map<String, Object> result = new HashMap<>();        
-       try {    	   
-	        MemberEntity memberEntity = modelMapper.map(requestDto, MemberEntity.class);  //MemberRequestDto -> MemberEntity	        
-	        	        
-	        if(memberRepository.existsByLoginId(memberEntity.getLoginId())) { //아이디 조회
-	            result.put("state", false);
-	            result.put("msg", "이미 아이디가 존재합니다.");
-	            return result; 
-	        }	        
-	        Map<String, Object> validate= validateMemberEntity(memberEntity);  //유효성 검사
-	        
-	        if(!(boolean)validate.get("state")) {	        	
-	        	return validate;                             
-	        }	        
-        	        	        
-	        memberEntity.setPasswordHash(passwordEncoder.encode(requestDto.getPasswordHash())); // 패스워드 암호화
-		      
-		       memberRepository.joinMember(memberEntity);   // 회원 가입 	
-		      
-	            result.put("state", true);
-	            result.put("msg", "회원 가입 성공.");	       
-       	 	}catch (Exception e) {    	   
-	           // 예외 처리
-	           result.put("state", false);
-	           result.put("msg", "회원 가입 중 오류 발생");
-	           result.put("error", e.getMessage());
-	           System.err.println("오류문 =="+e.getMessage());
-	           e.printStackTrace();
-       	 	}
-       		return result;   	   	
-    }
-    
-    // 필수 필드 유효성 검사
-    private Map<String, Object> validateMemberEntity(MemberEntity memberEntity) {
-    	Map<String, Object> result = new HashMap<>();   		
-    		result.put("state", false);
-    	
-	        if (!StringUtils.hasText(memberEntity.getLoginId())) {        	
-	        	result.put("msg", "loginId는 필수 입력 사항입니다.");
-	        	 return result;
-	        }
-	        if (!StringUtils.hasText(memberEntity.getPasswordHash())) {       	
-	        	result.put("msg", "비밀번호는 필수 입력 사항입니다.");
-	        	 return result;
-	        }
-	        if (!StringUtils.hasText(memberEntity.getEmail())) {     
-	        	result.put("msg", "이메일은 필수 입력 사항입니다.");	
-	        	 return result;
-	        }
-	        // 비밀번호 정책 검사 (예: 길이, 특수 문자 포함 등)
-	        if (memberEntity.getPasswordHash().length() < 8) {      	        	
-	        	result.put("msg", "비밀번호는 최소 8자 이상이어야 합니다.");	
-	        	 return result;
-	        }        
-	    	result.put("state", true);
-	        // 추가 정책 (예: 대소문자, 숫자, 특수 문자 포함 확인)도 여기에 추가 가능
+        Map<String, Object> result = new HashMap<>();
+        try {
+            MemberEntity memberEntity = modelMapper.map(requestDto, MemberEntity.class);
+
+            // 아이디 중복 확인
+            if (memberRepository.existsByLoginId(memberEntity.getLoginId())) {
+                result.put("state", false);
+                result.put("msg", "이미 아이디가 존재합니다.");
+                return result;
+            }
+
+            // 필수 필드 유효성 검사
+            Map<String, Object> validate = validateMemberEntity(memberEntity);
+            if (!(boolean) validate.get("state")) {
+                return validate;
+            }
+
+            // 비밀번호 암호화 및 회원 등록
+            memberEntity.setPasswordHash(passwordEncoder.encode(requestDto.getPasswordHash()));
+            memberRepository.joinMember(memberEntity);
+
+            result.put("state", true);
+            result.put("msg", "회원 가입 성공.");
+        } catch (Exception e) {
+            result.put("state", false);
+            result.put("msg", "회원 가입 중 오류 발생");
+            result.put("error", e.getMessage());
+            e.printStackTrace();
+        }
         return result;
     }
-    
-    
 
+    /**
+     * 필수 필드 유효성 검사
+     * @param memberEntity 검증할 회원 엔티티
+     * @return Map<String, Object> 유효성 검사 결과
+     */
+    private Map<String, Object> validateMemberEntity(MemberEntity memberEntity) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("state", false);
 
-    // ID로 회원 조회
+        if (!StringUtils.hasText(memberEntity.getLoginId())) {
+            result.put("msg", "loginId는 필수 입력 사항입니다.");
+            return result;
+        }
+        if (!StringUtils.hasText(memberEntity.getPasswordHash())) {
+            result.put("msg", "비밀번호는 필수 입력 사항입니다.");
+            return result;
+        }
+        if (!StringUtils.hasText(memberEntity.getEmail())) {
+            result.put("msg", "이메일은 필수 입력 사항입니다.");
+            return result;
+        }
+        if (memberEntity.getPasswordHash().length() < 8) {
+            result.put("msg", "비밀번호는 최소 8자 이상이어야 합니다.");
+            return result;
+        }
+
+        result.put("state", true);
+        return result;
+    }
+
+    /**
+     * 로그인 - (아이디와 비밀번호 검증 포함)
+     * @param memberDto 회원의 로그인 정보를 담은 DTO
+     * @return Map<String, Object> 로그인 상태 및 메시지를 담은 결과
+     */
     public Map<String, Object> findActiveMemberByLoginId(MemberRequestDto memberDto) {
-        Map<String, Object> result = new HashMap<>();        
-       try {
-	        MemberEntity requestDto = modelMapper.map(memberDto, MemberEntity.class);  //MemberRequestDto -> MemberEntity
-	        	         
-	        Optional<MemberEntity> response = memberRepository.findActiveMemberByLoginId(requestDto); // 가입할떄 쓰라는데?
-	        
-	        if (response.isEmpty()) {  // 빈값 체크
-	            result.put("state", false);
-	            result.put("msg", "아이디를 확인해주세요");
-	        } else {
-	        	MemberResponseDto responseDto = modelMapper.map(response.get(), MemberResponseDto.class);  // MemberEntity -> MemberResponseDto	        	//passwordEncoder.matches(memberDto.getPasswordHash(), response.get().getPasswordHash()); //이게 회원 비밀번호 맞추는거 하는거			      			     
-			      if(passwordEncoder.matches(memberDto.getPasswordHash(), response.get().getPasswordHash())) { //패스워드 검증
-			    	  
-	    	            // JWT 생성
-	    	            //String token = JwtProvider.generateToken();
-	    				System.out.println("데이터 값 뽑아왔고 여기서 uuid 뽑아내자 아님 이걸 서비스 로직에서 해버려?===="+responseDto.getUuid());
-	    	            // JWT를 HttpOnly 쿠키로 설정
-	    	            Cookie jwtCookie = new Cookie("jwtToken", responseDto.getUuid());
-	    	            jwtCookie.setHttpOnly(true);
-	    	            jwtCookie.setSecure(false);  // 로컬 개발 환경에서는 false, 배포 환경에서는 true
-	    	            jwtCookie.setPath("/");
-	    	            jwtCookie.setMaxAge(60 * 60); // 1시간 유효
-	    	            redisService.saveToken(responseDto.getUuid(), "test1");
-	    	          result.put("jwt", jwtCookie);
-				      result.put("state", true);
-			          result.put("msg", "회원 조회 성공");
-			          result.put("data", responseDto);			          			          
-		    					          
-			          
-			          System.out.println("레디스 값 리턴 제발!!!!!!"+redisService.getValue("id"));
-			          
-			          
-			      	return result;
-			      }else {
-				      result.put("state", false);
-			          result.put("msg", "비밀 번호를 확인해주세요");
-			      	return result;
-			      }
-	        }
-       }catch (Exception e) {    		           // 예외 처리   
-	           result.put("state", false);
-	           result.put("msg", "회원 조회 중 오류 발생");
-	           result.put("error", e.getMessage());
-	           System.err.println("오류문 =="+e.getMessage());
-	           e.printStackTrace();
-	           
-	}
-       	return result;
+        Map<String, Object> result = new HashMap<>();
+        try {
+            MemberEntity requestDto = modelMapper.map(memberDto, MemberEntity.class);
+            Optional<MemberEntity> response = memberRepository.findActiveMemberByLoginId(requestDto);
+
+            if (response.isEmpty()) {
+                result.put("state", false);
+                result.put("msg", "아이디를 확인해주세요");
+            } else {
+                MemberResponseDto responseDto = modelMapper.map(response.get(), MemberResponseDto.class);
+                if (passwordEncoder.matches(memberDto.getPasswordHash(), response.get().getPasswordHash())) {
+                	ObjectMapper objectMapper = new ObjectMapper();
+                    Cookie jwtCookie = new Cookie("jwtToken", responseDto.getUuid());
+                    jwtCookie.setHttpOnly(true);
+                    jwtCookie.setSecure(false);
+                    jwtCookie.setPath("/");
+                    jwtCookie.setMaxAge(60 * 60);
+                    
+                    //이거 rsa 암호화해서 토큰키 변경시키고
+                    //클라잉언트에 토큰 주는것도 암호화 한거 주자..                    
+                    String jsonValue = objectMapper.writeValueAsString(responseDto); //직렬화                    
+                    redisService.saveToken(responseDto.getUuid(), jsonValue);
+                    String userInfo=redisService.getUserIdFromToken(responseDto.getUuid());  // -> 여기가 반환값이 스트링                                    	                    
+                    //Map  userInfoMap = objectMapper.readValue(userInfo, Map.class);    //역직렬화                
+                    //System.out.println("userInfoMap==="+userInfoMap.get("loginId")); 
+                    
+                    result.put("jwt", jwtCookie);
+                    result.put("state", true);
+                    result.put("msg", "회원 조회 성공");
+                    result.put("data", responseDto);
+                } else {
+                    result.put("state", false);
+                    result.put("msg", "비밀 번호를 확인해주세요");
+                }
+            }
+        } catch (Exception e) {
+            result.put("state", false);
+            result.put("msg", "회원 조회 중 오류 발생");
+            result.put("error", e.getMessage());
+            e.printStackTrace();
+        }
+        return result;
     }
-    
-    
-    // 로그아웃 시키기
+
+    /**
+     * 로그아웃 처리
+     * @param memberDto 로그아웃할 회원 정보가 담긴 DTO
+     * @return Map<String, Object> 로그아웃 처리 결과
+     */
     public Map<String, Object> logoutMember(MemberRequestDto memberDto) {
-        Map<String, Object> result = new HashMap<>();        
-       try {
-	        MemberEntity requestDto = modelMapper.map(memberDto, MemberEntity.class);  //MemberRequestDto -> MemberEntity
-	        	         
-	        String uuid = memberDto.getUuid();
-	        if(uuid != null && redisService.getTokenKey(uuid)) {
-	        	System.out.println("레디스 토큰 삭제 시작 ==");
-	        	redisService.deleteToken(memberDto.getUuid());	        
-	        	//로그 아웃 로그 기록 남기기
-	        	
-	        	
-	        	
-		           result.put("state", true);
-		           result.put("msg", "로그아웃 성공");
-		           return result;
-	        }
-	        
-	        
-       }catch (Exception e) {    		           // 예외 처리   
-	           result.put("state", false);
-	           result.put("msg", "로그아웃 중 오류 발생");
-	           result.put("error", e.getMessage());
-	           System.err.println("오류문 =="+e.getMessage());
-	           e.printStackTrace();
-	           
-	}
-       	return result;
+        Map<String, Object> result = new HashMap<>();
+        try {
+            String uuid = memberDto.getUuid();
+            if (uuid != null && redisService.getTokenKey(uuid)) {
+                redisService.deleteToken(memberDto.getUuid());
+                result.put("state", true);
+                result.put("msg", "로그아웃 성공");
+            }
+        } catch (Exception e) {
+            result.put("state", false);
+            result.put("msg", "로그아웃 중 오류 발생");
+            result.put("error", e.getMessage());
+            e.printStackTrace();
+        }
+        return result;
     }
-    
-    
-    // 쿠키 값으로 로그인 세션 토큰 체크
+
+    /**
+     * 쿠키를 이용한 로그인 세션 토큰 검증
+     * @param memberDto 세션을 확인할 회원 정보가 담긴 DTO
+     * @return Map<String, Object> 세션 상태 및 메시지를 담은 결과
+     */
     public Map<String, Object> findSessionMember(MemberRequestDto memberDto) {
         Map<String, Object> result = new HashMap<>();
-        MemberResponseDto  responseDto = new  MemberResponseDto();
-       try {
-    	   System.out.println("세션 토큰 값 컨트롤러 시작");
-	        MemberEntity requestDto = modelMapper.map(memberDto, MemberEntity.class);  //MemberRequestDto -> MemberEntity	        
-	        //Optional<MemberEntity> response = memberRepository.findActiveMemberByLoginId(requestDto); // 가입할떄 쓰라는데?
-	        String uuid = memberDto.getUuid();
-	        if(uuid != null) {
-	        	if(redisService.getTokenKey(uuid)) {	        	
-	        	String sessionResult = redisService.getUserIdFromToken(memberDto.getUuid());
-	        	//로그 아웃 로그 기록 남기기 
-	        	 responseDto.setLoginYn(Boolean.TRUE);
-		           result.put("state", true);
-		           result.put("msg", "로그인 토큰 존재");
-		           result.put("data", responseDto);
-		           return result;
-	        	}else {
+        MemberResponseDto responseDto = new MemberResponseDto();
+        try {
+            String uuid = memberDto.getUuid();
+            
+            if( uuid==null && !memberDto.getLoginYn() ){ // jwt 토큰 x , 로그인 상태 x  비회원 로그인
+                result.put("state", true);
+                result.put("msg", "비회원 로그인");
+                result.put("data", responseDto);
+            }else if (uuid == null && memberDto.getLoginYn()) {  // 클라이언트 토큰 없고  로그인 상태 o  -> 로그아웃 시켜야지            	
+                result.put("state", false);
+                result.put("msg", "사용자 토큰이 존재하지 않습니다. 재로그인 부탁드립니다.");
+                result.put("data", responseDto);            	
+            }else if (uuid != null && redisService.getTokenKey(uuid)) {
+                String sessionResult = redisService.getUserIdFromToken(uuid);
+                responseDto.setLoginYn(true);
+                result.put("state", true);
+                result.put("msg", "로그인 토큰 정상");
+                result.put("data", responseDto);
+            }else if (uuid != null && !redisService.getTokenKey(uuid)) {             	
+                Cookie jwtCookie = new Cookie("jwtToken", uuid);
+                jwtCookie.setHttpOnly(true);
+                jwtCookie.setMaxAge(0);
+                jwtCookie.setPath("/");
+                result.put("jwt", jwtCookie);
+                result.put("state", false);
+                result.put("msg", "서버 토큰 만료 재로그인 부탁드리겠습니다.");           	     	
+            } else {
+                Cookie jwtCookie = new Cookie("jwtToken", uuid);
+                jwtCookie.setHttpOnly(true);
+                jwtCookie.setMaxAge(0);
+                jwtCookie.setPath("/");
 
-    	            Cookie jwtCookie = new Cookie("jwtToken", memberDto.getUuid());
-		    	    jwtCookie.setHttpOnly(true);
-		    	    jwtCookie.setMaxAge(0); // 만료 시간 0으로 설정
-		    	    jwtCookie.setPath("/"); // 쿠키 경로 설정		
-		    	    
-		    	    result.put("jwt", jwtCookie);	    	    
-			        result.put("state", false);
-			        result.put("msg", "로그인 토큰 확인");
-	        	}
-
-	        }else {
-	        		//비로그인 사용장 정상케이스임
-	        	   responseDto.setLoginYn(Boolean.FALSE);
-		           result.put("state", true);
-		           result.put("data", responseDto);
-		           result.put("msg", "로그인 안된 사용자");		           
-	        }	       	       
-	        
-       }catch (Exception e) {    		           // 예외 처리   
-	           result.put("state", false);
-	           result.put("msg", "로그아웃 중 오류 발생");
-	           result.put("error", e.getMessage());
-	           System.err.println("오류문 =="+e.getMessage());
-	           e.printStackTrace();
-	           
-	}
-       	return result;
+                result.put("jwt", jwtCookie);
+                result.put("state", false);
+                result.put("msg", "로그인 토큰 확인");
+            }
+        } catch (Exception e) {
+            result.put("state", false);
+            result.put("msg", "로그아웃 중 오류 발생");
+            result.put("error", e.getMessage());
+            e.printStackTrace();
+        }
+        return result;
     }
-    
-    
-    
-    
 
-    // 이메일로 회원 조회
+    /**
+     * 이메일로 회원 조회
+     * @param email 조회할 회원의 이메일
+     * @return MemberEntity 회원 엔티티
+     */
     public MemberEntity findMemberByEmail(String email) {
         return memberRepository.findByEmail(email);
-    }
-
-    // 회원 저장
-    public void saveMember(MemberEntity member) {
-    	
-    	String formattedUserId = String.format("%06d", ""); // 자바에서 6자리로 포맷팅
-    	//MemberEntity  // 멤버 엔티티데 새로 세팅하자
-    	
-    	//member.setId()
-    	member.setUserId(Long.parseLong("111111"));
-        memberRepository.findById(Long.parseLong(member.getLoginId().toString()));
     }
 
 }
