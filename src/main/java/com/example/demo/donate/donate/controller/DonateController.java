@@ -17,6 +17,8 @@ import com.example.demo.donate.bank.dto.BankRequestDto;
 import com.example.demo.donate.donate.dto.DonateRequestDto;
 import com.example.demo.donate.donate.service.DonateService;
 
+import antlr.Parser;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,8 +49,10 @@ import javax.servlet.http.HttpServletResponse;
 	     * @return 등록된 기부 정보 및 메시지를 담은 Map 객체
 	     */		
 		@PostMapping("/donateInsert")
-		public ResponseEntity donateInsert(@RequestBody DonateRequestDto donateRequestDto ,HttpServletRequest req,  HttpServletResponse res) {						
-			Map<String,Object> result = donateService.donateInsert(donateRequestDto);			
+		public ResponseEntity donateInsert(@RequestBody DonateRequestDto donateRequestDto,MemberRequestDto memberDto ,HttpServletRequest req,  HttpServletResponse res) {						
+			donateRequestDto.setUserId(Long.parseLong(memberDto.getLoginId()));
+			Map<String,Object> result = donateService.donateInsert(donateRequestDto);	
+			
 			ApiResponse response = new ApiResponse((boolean)result.get("state"), result.get("msg").toString() , result.get("data"));			
 			return ResponseEntity.status(HttpStatus.CREATED).body(response);					
 		}

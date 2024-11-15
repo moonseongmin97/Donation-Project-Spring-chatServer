@@ -3,6 +3,7 @@ package com.example.demo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import com.example.demo.auth.entity.MemberEntity;
 
@@ -18,32 +19,8 @@ public class DemoApplication {
 
 		SpringApplication.run(DemoApplication.class, args);
 
+
 	}
-	/*
-	 * @Autowired public static String findMember2() { EntityManagerFactory emf =
-	 * Persistence.createEntityManagerFactory("hello2");
-	 * 
-	 * EntityManager em = emf.createEntityManager();
-	 * 
-	 * EntityTransaction tx = em.getTransaction(); tx.begin();
-	 * 
-	 * 
-	 * MemberEntity FindMember = null; try {
-	 * 
-	 * 
-	 * FindMember = em.find(MemberEntity.class, 1L); System.out.println("id= " +
-	 * FindMember.getId()); System.out.println("name= " + FindMember.getName());
-	 * System.out.println("class= " + FindMember.getClass());
-	 * 
-	 * FindMember.setName("updateReact?");
-	 * 
-	 * 
-	 * // em.persist();
-	 * 
-	 * tx.commit();
-	 * 
-	 * } catch (Exception e) { tx.rollback(); } finally { em.close(); emf.close(); }
-	 * return FindMember.getName(); };
-	 */
+
 
 }

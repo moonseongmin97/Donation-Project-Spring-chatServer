@@ -71,19 +71,9 @@ import javax.servlet.http.HttpServletResponse;
 	     * @return 로그인 정보 체크 후 사용자 정보 및 메시지를 담은 Map 객체
 	     */	
 	    @PostMapping("/loginCheck")
-	    public ResponseEntity select(@RequestBody  MemberRequestDto memberDto , @RequestBody  MemberResponseDto member ,HttpServletRequest request,  HttpServletResponse res) throws Exception {
-	    	try {
-    		Cookie[] cookies  = request.getCookies();		
-    		String uuid ;
-    		HttpStatus httpStatus ;   		
-    		boolean jwtCheck = CookieUtil.getCookieValue(request, "jwtToken").isEmpty(); // 쿠키 안에 토큰 값 확인
-    		
-    		if(!jwtCheck) {
-    			uuid= CookieUtil.getCookieValue(request, "jwtToken").get();
-        		memberDto.setUuid(uuid);
-        		memberDto.setIpAddress("");	
-    		}
-    		
+	    public ResponseEntity select(MemberRequestDto memberDto  ,HttpServletRequest request,  HttpServletResponse res) throws Exception {
+	    	try {	
+    		HttpStatus httpStatus ;    		
     		Map<String, Object> result =memberService.findSessionMember(memberDto);
     		httpStatus = ((boolean) result.get("state")) ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST ;
     		if(result.get("jwt")!=null) {
@@ -112,20 +102,7 @@ import javax.servlet.http.HttpServletResponse;
 	     * @return 로그인 정보 체크 후 사용자 정보 및 메시지를 담은 Map 객체
 	     */	
 	    @PostMapping("/logout")
-	    public ResponseEntity logout(@RequestBody  MemberRequestDto memberDto ,HttpServletRequest request,  HttpServletResponse res) throws Exception {
-    		System.out.println("로그아웃 logout ======");
-    		Cookie[] cookies  = request.getCookies();
-    		boolean jwtCheck = CookieUtil.getCookieValue(request, "jwtToken").isEmpty(); // 쿠키 안에 토큰 값 확인
-    		String uuid= null;
-    		if(!jwtCheck) {
-    			uuid= CookieUtil.getCookieValue(request, "jwtToken").get();
-        		memberDto.setUuid(uuid);
-        		memberDto.setIpAddress("");	
-    		}else {
-    			
-    			
-    		}
-   
+	    public ResponseEntity logout(@RequestBody  MemberRequestDto memberDto ,HttpServletRequest request,  HttpServletResponse res) throws Exception {  
     		//System.out.println("회원조회 컨트롤러 - 레디스 조회값======"+redisService.getUserIdFromToken(uuid));
 	    	Map<String, Object> result =memberService.logoutMember(memberDto);
 	    	
@@ -157,21 +134,7 @@ import javax.servlet.http.HttpServletResponse;
 	     */	
 	    @PostMapping(value = "/signIn")
 	    public ResponseEntity selectMember(@RequestBody  MemberRequestDto memberDto , HttpServletRequest request , HttpServletResponse res) {
-	    	try {
-	    		System.out.println("회원조회 컨트롤러 signIn======");
-	    		Cookie[] cookies  = request.getCookies();	
-	    		 //1 쿠키 값은 있다  
-  	    		// 2. 쿠키 값 안에 토큰 값도 있다.
-	    		
-	    		boolean jwtCheck = CookieUtil.getCookieValue(request, "jwtToken").isEmpty(); // 쿠키 안에 토큰 값 확인	    		
-	    		if(cookies != null && cookies.length > 0 && !jwtCheck) {
-		    		String uuid=  CookieUtil.getCookieValue(request, "jwtToken").get();
-		    		memberDto.setUuid(uuid);
-		    		memberDto.setIpAddress("");	    
-		    		//System.out.println("회원조회 컨트롤러 - 레디스 조회값======"+redisService.getUserIdFromToken(uuid));	    			
-	    		}
-	    		
-
+	    	try {	    		
 		    	Map<String, Object> result =memberService.findActiveMemberByLoginId(memberDto); 			    		
 		    	ApiResponse response = new ApiResponse((boolean)result.get("state"), result.get("msg").toString() , result.get("data") );
 		    	
