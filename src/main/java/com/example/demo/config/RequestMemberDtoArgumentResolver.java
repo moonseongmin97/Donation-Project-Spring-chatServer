@@ -22,6 +22,11 @@ public class RequestMemberDtoArgumentResolver implements HandlerMethodArgumentRe
 
 
 	@Autowired private RedisServiceImpl redisServiceImpl;
+	
+    @PostConstruct
+    public void init() {
+        System.out.println("RedisServiceImpl 주입 상태: " + (redisServiceImpl != null));
+    }
 
     @Override
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
