@@ -35,7 +35,7 @@ public class RequestMemberDtoArgumentResolver implements HandlerMethodArgumentRe
         MemberRequestDto memberRequestDto = new MemberRequestDto();        
         boolean jwtCheck = CookieUtil.getCookieValue(request, "jwtToken").isEmpty(); // 쿠키 안에 토큰 값 확인
         
-        if (!jwtCheck ) { 
+        if (!jwtCheck) { 
         	String token  = CookieUtil.getCookieValue(request, "jwtToken").get();
         	if(redisServiceImpl.getTokenKey(token)) {
              	ObjectMapper objectMapper = new ObjectMapper();

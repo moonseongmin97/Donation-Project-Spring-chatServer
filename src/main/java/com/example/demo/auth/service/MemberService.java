@@ -191,7 +191,10 @@ public class MemberService {
             if (uuid != null && redisService.getTokenKey(uuid)) {
                 redisService.deleteToken(memberDto.getUuid());
                 result.put("state", true);
-                result.put("msg", "로그아웃 성공");
+                result.put("msg", "레디스 토큰 삭제 완료,로그아웃 성공");
+            }else {
+                result.put("state", true);
+                result.put("msg", "클라이언트 토큰 없음 ,로그아웃 성공");	
             }
         } catch (Exception e) {
             result.put("state", false);

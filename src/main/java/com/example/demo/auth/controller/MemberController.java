@@ -102,8 +102,9 @@ import javax.servlet.http.HttpServletResponse;
 	     * @return 로그인 정보 체크 후 사용자 정보 및 메시지를 담은 Map 객체
 	     */	
 	    @PostMapping("/logout")
-	    public ResponseEntity logout(@RequestBody  MemberRequestDto memberDto ,HttpServletRequest request,  HttpServletResponse res) throws Exception {  
+	    public ResponseEntity logout(MemberRequestDto memberDto ,HttpServletRequest request,  HttpServletResponse res) throws Exception {  
     		//System.out.println("회원조회 컨트롤러 - 레디스 조회값======"+redisService.getUserIdFromToken(uuid));
+	    	
 	    	Map<String, Object> result =memberService.logoutMember(memberDto);
 	    	
 	    	  Cookie jwtCookie = new Cookie("jwtToken", null); // 토큰 이름 지정
