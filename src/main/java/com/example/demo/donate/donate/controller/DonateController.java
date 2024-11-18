@@ -74,6 +74,22 @@ import javax.servlet.http.HttpServletResponse;
 			ApiResponse response = new ApiResponse((boolean)result.get("state"), result.get("msg").toString() , result.get("data"));			
 			return ResponseEntity.status(HttpStatus.CREATED).body(response);					
 		}
+		
+		
+		 /**
+	     * 상위 기부자를 조회하여 반환합니다.
+	     *
+	     * @param donateRequestDto 기부 요청 정보를 담은 DTO
+	     * @param req HttpServletRequest 요청 객체
+	     * @param res HttpServletResponse 응답 객체
+	     * @return 상위 기부자 성명, 금액 및 상태 메시지를 담은 Map 객체
+	     */
+		@PostMapping("/findTop5Donors")
+		public ResponseEntity findTop5Donors(@RequestBody DonateRequestDto donateRequestDto ,HttpServletRequest req,  HttpServletResponse res) {
+			Map<String,Object> result = donateService.findTop5Donors(donateRequestDto);
+			ApiResponse response = new ApiResponse((boolean)result.get("state"), result.get("msg").toString() , result.get("data"));			
+			return ResponseEntity.status(HttpStatus.CREATED).body(response);					
+		}
 	    
 	    
 	}

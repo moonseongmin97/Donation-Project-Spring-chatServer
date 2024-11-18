@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import com.example.demo.auth.entity.MemberEntity;
 import com.example.demo.donate.bank.entity.BankEntity;
+import com.example.demo.donate.donate.dto.DonateResponseDto;
 import com.example.demo.donate.donate.entity.DonateEntity;
 
 import javax.persistence.EntityManager;
@@ -17,6 +18,9 @@ import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,19 +57,27 @@ public class DonateRepository {
         return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));            	    	    
     }
     
-    // 상위 5명의 기부자 조회
     @Transactional
-    public List<DonateEntity> findTop5Donors(DonateEntity donateEntity) {
-    	String jpql = "SELECT d.userName, SUM(d.amount) " +
-                "FROM DonateEntity d " +
-                "WHERE d.donationDate >= CURRENT_DATE - INTERVAL '2 MONTH' " +
-                "GROUP BY d.userName " +
-                "ORDER BY SUM(d.amount) DESC";
+    public List<DonateResponseDto> findTop5Donors() throws Exception {
     	
-           TypedQuery<DonateEntity> query = entityManager.createQuery(jpql, DonateEntity.class);       
-        query.setMaxResults(5);  // 상위 5명 제한
-        return query.getResultList();
+    	LocalDate twoMonthsAgo = LocalDate.now().minusMonths(2);
+//    	LocalDateTime startOfDay = twoMonthsAgo.atStartOfDay();
+    	
+    	String jpql = "SELECT new com.example.demo.donate.donate.dto.DonateResponseDto(d.userName, SUM(d.amount)) " +
+                "FROM DonateEntity d " +
+                "WHERE d.donationDate >= :twoMonthsAgo " +
+                "GROUP BY d.userName,d.userId " +
+                "ORDER BY SUM(d.amount) DESC";
+
+    	TypedQuery<DonateResponseDto> query = entityManager.createQuery(jpql, DonateResponseDto.class);
+    	query.setParameter("twoMonthsAgo", twoMonthsAgo.atStartOfDay());
+    	query.setMaxResults(5);
+    	return query.getResultList();
+
+  
     }
+    
+
     
   
     

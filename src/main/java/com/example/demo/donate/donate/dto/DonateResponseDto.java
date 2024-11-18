@@ -24,10 +24,14 @@ public class DonateResponseDto {
  
  
  
- 
+ public DonateResponseDto(String userName, BigDecimal totalAmount) {
+     this.userName = userName;
+     this.totalAmount = totalAmount;
+ }
 
- // Getters and Setters
- 
+public DonateResponseDto() {
+}
+
 public Long getDonationId() {
 	return donationId;
 }

@@ -14,6 +14,7 @@ import com.example.demo.donate.donate.repository.DonateRepository;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -86,8 +87,7 @@ public class DonateService  {
     	//1 requestDto -> entity 변환
     	// 인서트
     	//2 entity -> responseDto
-    	// 성공했을때 리절트에 성공 주기
-    	
+    	// 성공했을때 리절트에 성공 주기   	
     	try {    		
     		DonateEntity donateEntity = modelMapper.map(donateRequestDto, DonateEntity.class);  //DonateRequestDto -> DonateEntity    		
     		//donateRepository.donateInsert(donateEntity); // 기부 등록    		
@@ -104,7 +104,8 @@ public class DonateService  {
 	            result.put("state", false);
 	            result.put("msg", "기부금 조회 값이 없음");
 	        }else {
-	        	DonateResponseDto responseDto = modelMapper.map(response.get(), DonateResponseDto.class);  // DonateEntity -> DonateResponseDto
+	        	//DonateResponseDto responseDto = modelMapper.map(response.get(), DonateResponseDto.class);  // DonateEntity -> DonateResponseDto
+	        	 DonateResponseDto responseDto = new DonateResponseDto();
 	        	responseDto.setTotalAmount(response.get());
 			      result.put("state", true);
 		          result.put("msg", "총 기부금 조회 성공");
@@ -120,6 +121,41 @@ public class DonateService  {
         return result;
     }
     
+    
+    /**
+     * [메서드 설명]
+     * 예: 상위 기부자 금액을 조회하여 반환합니다.
+     *
+     * @param donateRequestDto 기부 요청 정보가 담긴 DTO
+     * @param req HttpServletRequest 요청 객체
+     * @param res HttpServletResponse 응답 객체
+     * @return 상위 기부자 금액 및 상태 메시지를 담은 Map 객체
+     * @throws SomeException 특정 예외 상황 발생 시 설명
+     */
+    public Map<String,Object> findTop5Donors(DonateRequestDto donateRequestDto) {
+    	Map<String,Object> result = new HashMap<>();
+    	//1 requestDto -> entity 변환
+    	// 인서트
+    	//2 entity -> responseDto
+    	// 성공했을때 리절트에 성공 주기   	
+    	try {    				
+    		List<DonateResponseDto> response = donateRepository.findTop5Donors(); //기부 상위자 db 조회 		
+	        if (response.isEmpty()) {
+	            result.put("state", false);
+	            result.put("msg", "상위자 기부금 조회 값이 없음");
+	        }else {
+			      result.put("state", true);
+		          result.put("msg", "총 기부금 조회 성공");
+		          result.put("data", response);	        	
+	        }   		
+    	}catch(Exception e){   		
+    		e.getStackTrace();
+    		e.getMessage();
+    		throw new CustomException("조회 중 오류가 발생했습니다.", e);
+    	}
+   	
+        return result;
+    }
     
     
 

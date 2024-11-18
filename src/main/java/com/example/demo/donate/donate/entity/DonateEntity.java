@@ -64,6 +64,15 @@ public class DonateEntity {
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
+    // 추가된 부분: @PrePersist로 기본 날짜 설정
+    @PrePersist
+    public void prePersist() {
+        if (donationDate == null) {
+            donationDate = LocalDateTime.now(); // 기본값: 현재 시간
+        }
+    }
+    
+
 	public Long getDonationId() {
 		return donationId;
 	}
