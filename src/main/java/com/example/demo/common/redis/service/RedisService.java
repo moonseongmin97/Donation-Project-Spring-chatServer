@@ -12,4 +12,5 @@ public interface RedisService {
     boolean getTokenKey(String token);
     String getUserIdFromToken(String token);
     void deleteToken(String token);
+    void addTokenTime(String token, int time);    
 }

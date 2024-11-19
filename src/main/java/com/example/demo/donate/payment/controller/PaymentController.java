@@ -1,9 +1,17 @@
 package com.example.demo.donate.payment.controller;	
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import com.example.demo.auth.dto.MemberDto;
 import com.example.demo.auth.dto.MemberRequestDto;
@@ -28,21 +36,52 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 	@RestController
-	@RequestMapping("/api")
+	@RequestMapping("/auth")
 	public class PaymentController {
-
 		
-		@Autowired
-		DonateService donateService; 
+	    @Value("${kftc.client.id}")
+	    private String kftcId; 
+	    
+	    @Value("${kftc.client.secret}")
+	    private String kftcSecret;
 		
-	    // ID로 회원 조회
-	    //@GetMapping("/bankList")	 
-	    public Optional<MemberEntity> getBank(@RequestBody DonateRequestDto danate) {
+	    @Value("${kftc.client.redirectUrl}")
+	    private String kftcRedirectUrl;
+	    
+	    @Value("${kftc.server.url}")
+	    private String kftcServerUrl;
+	    
+		
+		    @PostMapping("/getToken")
+		    public ResponseEntity<String> getToken(@RequestBody Map<String, String> request) {
+		        String clientId = kftcId;
+		        String clientSecret = kftcSecret;
+		        String redirectUri = kftcRedirectUrl;
+		        String authCode = request.get("code");
 
-	    	
-	    	
-	    	return null;
-	    }
-	    
-	    
+		        RestTemplate restTemplate = new RestTemplate();
+		        HttpHeaders headers = new HttpHeaders();
+		        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+		        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+		        body.add("client_id", clientId);
+		        body.add("client_secret", clientSecret);
+		        body.add("redirect_uri", redirectUri);
+		        body.add("code", authCode);
+		        body.add("grant_type", "authorization_code");
+
+		        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, headers);
+		        ResponseEntity<String> response = restTemplate.exchange(kftcServerUrl, HttpMethod.POST, requestEntity, String.class);
+
+		        return response;
+		    }
+
+		        @GetMapping("/callback")
+		        public ResponseEntity<String> handleCallback(@RequestParam("code") String code, @RequestParam("state") String state) {
+		            System.out.println("Authorization Code: " + code);
+		            return ResponseEntity.ok("Authorization Code: " + code);
+		        }
+		    
+
+    
 	}

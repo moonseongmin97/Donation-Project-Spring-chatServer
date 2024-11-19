@@ -13,6 +13,8 @@ import com.example.demo.common.util.CookieUtil;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.time.Duration;
+
 import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -41,6 +43,7 @@ public class RequestMemberDtoArgumentResolver implements HandlerMethodArgumentRe
              	ObjectMapper objectMapper = new ObjectMapper();
              	objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);   //필드 값 없어도 무시          	
              	try {
+             	redisServiceImpl.addTokenTime(token, 60); //토큰 연장 분 단위
         		String userInfo =redisServiceImpl.getUserIdFromToken(token);
         		 memberRequestDto = objectMapper.readValue(userInfo, MemberRequestDto.class);
         		

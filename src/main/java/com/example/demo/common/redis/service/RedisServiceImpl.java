@@ -5,6 +5,8 @@ import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
+import java.time.Duration;
+
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +51,7 @@ public class RedisServiceImpl implements RedisService {
         redisTemplate.opsForValue().set(token, userInfo, 1, TimeUnit.HOURS); // 1시간 만료
     }
     
-    //키 값 확인
+    //로그인 키 값 확인
     @Override 
     public boolean getTokenKey(String token) {
         if (redisTemplate.hasKey(token)) {
@@ -67,5 +69,12 @@ public class RedisServiceImpl implements RedisService {
     public void deleteToken(String token) {
         redisTemplate.delete(token);
     }
+    
+    //토큰 시간 연장
+    @Override 
+    public void addTokenTime(String token , int time) {
+    	redisTemplate.expire(token, Duration.ofMinutes(time)); //활동 중이면 토큰 시간 연장
+    }
+    
     
 }
