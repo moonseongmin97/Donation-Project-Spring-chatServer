@@ -21,8 +21,6 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session){
         try  {
         	    System.out.println("WebSocket connection established"+session);
-        	    System.out.println("WebSocket connection established"+session);
-        	    System.out.println("WebSocket connection established"+session);
         	    session.sendMessage(new TextMessage("Hello, Client!"));
         	
         } catch (Exception e) {
