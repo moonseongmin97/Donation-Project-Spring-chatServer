@@ -14,12 +14,14 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
 
 
 	/**
-     * 웹소켓 연결 성공시
+     * 웹소켓 연결 성공시 
      * @param session
      */
     @Override
     public void afterConnectionEstablished(WebSocketSession session){
         try  {
+        	    System.out.println("WebSocket connection established"+session);
+        	    System.out.println("WebSocket connection established"+session);
         	    System.out.println("WebSocket connection established"+session);
         	    session.sendMessage(new TextMessage("Hello, Client!"));
         	
