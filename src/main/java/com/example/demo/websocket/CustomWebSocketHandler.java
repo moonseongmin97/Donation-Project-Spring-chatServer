@@ -27,14 +27,16 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
         //redisTemplate.delete("chat:" + roomId);
         // 채팅방 세션 저장
         chatRooms.computeIfAbsent(roomId, k -> new ArrayList<>()).add(session);
-
+        System.out.println("세션==="+session.getAttributes().get("user"));
+        System.out.println("레디스==="+(String) redisTemplate.opsForValue().get(session.getAttributes().get("user")));
+          
+        
         // Redis에서 메시지 로드
         List<String> messages = redisTemplate.opsForList().range("chat:" + roomId, 0, -1);
 
         // 메시지를 JSON 객체로 변환
         List<Map<String, Object>> parsedMessages = new ArrayList<>();
         for (String message : messages) {
-            // JSON 문자열을 Map으로 변환
             Map<String, Object> parsedMessage = objectMapper.readValue(message, Map.class);
             parsedMessages.add(parsedMessage);
         }

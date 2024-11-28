@@ -21,12 +21,17 @@ public class WebSocketConfig implements WebSocketConfigurer, WebMvcConfigurer {
     public CustomWebSocketHandler customWebSocketHandler() {
         return new CustomWebSocketHandler();
     }
+    
+    
+    
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         System.out.println("WebSocket handler registered");
         registry.addHandler(customWebSocketHandler(), "/chat")
-                .setAllowedOrigins("*"); // 개발용, 운영 시 특정 도메인으로 변경
+        		.addInterceptors(new JwtHandshakeInterceptor()) // JWT 인터셉터
+        		.setAllowedOrigins("http://localhost:3000"); // React 앱 도메인;
+                //.setAllowedOrigins("*"); // 개발용, 운영 시 특정 도메인으로 변경
     }
 
     @Override
