@@ -28,7 +28,8 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
         // 채팅방 세션 저장
         chatRooms.computeIfAbsent(roomId, k -> new ArrayList<>()).add(session);
         System.out.println("세션==="+session.getAttributes().get("user"));
-        System.out.println("레디스==="+(String) redisTemplate.opsForValue().get(session.getAttributes().get("user")));
+        //System.out.println("레디스==="+(String) redisTemplate.opsForValue().get(session.getAttributes().get("user"))); 
+        // 레디스 키값 체크 후 사용하자
           
         
         // Redis에서 메시지 로드
