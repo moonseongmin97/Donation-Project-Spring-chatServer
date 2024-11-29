@@ -4,6 +4,7 @@ package com.example.demo.websocket;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import com.example.demo.websocket.redis.RedisService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,9 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
+    @Autowired
+    private RedisService redisService;
+    
     // 채팅방별 연결 관리
     private final Map<String, List<WebSocketSession>> chatRooms = new HashMap<>();
 
@@ -24,6 +28,7 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
         System.out.println("채팅연결");
         String roomId = getRoomId(session);
         ObjectMapper objectMapper = new ObjectMapper();
+        //redisTemplate.delete("chat:" + roomId); 
         //redisTemplate.delete("chat:" + roomId);
         // 채팅방 세션 저장
         chatRooms.computeIfAbsent(roomId, k -> new ArrayList<>()).add(session);
@@ -37,6 +42,7 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
 
         // 메시지를 JSON 객체로 변환
         List<Map<String, Object>> parsedMessages = new ArrayList<>();
+        System.out.println("messages========="+messages);
         for (String message : messages) {
             Map<String, Object> parsedMessage = objectMapper.readValue(message, Map.class);
             parsedMessages.add(parsedMessage);
@@ -59,15 +65,31 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String roomId = getRoomId(session);
         String payload = message.getPayload();
+        String userInfo = null;
+        ObjectMapper objectMapper = new ObjectMapper();
+        String messageListJson = null;
         // 메시지 Redis에 저장
-        System.out.println("삽입 데이터=="+payload);
-
-        //redisTemplate.delete("chat:" + roomId);            
-
-        System.out.println("인서트시 ==(JSON 배열): " + payload);
-        redisTemplate.opsForList().rightPush("chat:" + roomId, payload);
+        Map<String, Object> parsedPayload = objectMapper.readValue(payload, Map.class);
+        String userUuid =(String)session.getAttributes().get("user");
+        if(userUuid!=null && redisService.getTokenKey(userUuid)) {
+        	 userInfo = redisTemplate.opsForValue().get(session.getAttributes().get("user"));
+        	 Map<String, Object> parsedMessage = objectMapper.readValue(userInfo, Map.class);
+        	 
+        	parsedPayload.put("userId",parsedMessage.get("userId"));
+        	parsedPayload.put("username",parsedMessage.get("username"));
+        	messageListJson = objectMapper.writeValueAsString(parsedPayload);
+        }
+      
+        //System.out.println("레디스==="+);
+        
+                  
+        
+        redisTemplate.opsForList().rightPush("chat:" + roomId,messageListJson.toString());
+        
+        
         // 같은 채팅방 사용자들에게 브로드캐스트
         for (WebSocketSession s : chatRooms.get(roomId)) {
+        	
             if (s.isOpen()) {
             	System.out.println("사용자 보낸값 리턴값 =="+payload);
             	s.sendMessage(new TextMessage(payload));
