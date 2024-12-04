@@ -16,6 +16,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
+    	//ip 넣는거 추가하자 나중에 
         List<String> cookies = request.getHeaders().get("Cookie");
         if (cookies != null) {
             for (String cookie : cookies) {

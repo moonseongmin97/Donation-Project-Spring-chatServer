@@ -78,6 +78,8 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
         	parsedPayload.put("userId",parsedMessage.get("userId"));
         	parsedPayload.put("username",parsedMessage.get("username"));
         	messageListJson = objectMapper.writeValueAsString(parsedPayload);
+        }else {
+        	objectMapper.writeValueAsString(parsedPayload);  	
         }
       
         //System.out.println("레디스==="+);
