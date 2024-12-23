@@ -1,11 +1,9 @@
 package com.example.demo.config;
 
 import org.springframework.web.socket.server.HandshakeInterceptor;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 
 import java.util.List;
 import java.util.Map;
