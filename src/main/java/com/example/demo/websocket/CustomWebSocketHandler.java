@@ -109,8 +109,8 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
         chatRooms.get(roomId).remove(session);
     }
 
-    private String getRoomId(WebSocketSession session) {
-        // 요청 파라미터로 방 ID 가져오기
+    private String getRoomId(WebSocketSession session) {    	
+        // 요청 파라미터로 방 ID 가져오기 zz
         String query = session.getUri().getQuery();
         return query.split("=")[1]; // 예: ?roomId=123
     }
