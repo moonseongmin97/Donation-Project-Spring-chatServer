@@ -59,7 +59,7 @@ dependencies {
 }
 
 
-bootWar {
+bootJar {
 	archiveFileName = 'ROOT.jar'
 }
 
