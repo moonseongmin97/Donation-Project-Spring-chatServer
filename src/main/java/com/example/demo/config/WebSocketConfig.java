@@ -35,7 +35,7 @@ public class WebSocketConfig implements WebSocketConfigurer, WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins("*")
-                .allowedMethods("*")
+                .allowedMethods("*");
                 //.allowCredentials(true);  우분투 테스트
     }
 }
