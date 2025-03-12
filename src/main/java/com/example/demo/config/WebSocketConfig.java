@@ -35,6 +35,6 @@ public class WebSocketConfig implements WebSocketConfigurer, WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins("*")
                 .allowedMethods("*")
-                .allowCredentials(true);
+                //.allowCredentials(true);  우분투 테스트
     }
 }
