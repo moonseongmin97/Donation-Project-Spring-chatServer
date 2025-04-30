@@ -26,8 +26,9 @@ public class WebSocketConfig implements WebSocketConfigurer, WebMvcConfigurer {
         System.out.println("WebSocket handler registered");
         registry.addHandler(customWebSocketHandler(), "/chat")
         		.addInterceptors(new JwtHandshakeInterceptor()) // JWT 인터셉터
-        		.setAllowedOrigins("http://localhost:3000"); // React 앱 도메인;
-                //.setAllowedOrigins("*"); // 개발용, 운영 시 특정 도메인으로 변경
+        		//.setAllowedOrigins("http://localhost:3000"); // React 앱 도메인;
+                .setAllowedOrigins("*"); // 개발용, 운영 시 특정 도메인으로 변경 
+                //우분투 서버 변경 테스트 중...
     }
 
     @Override
@@ -35,6 +36,6 @@ public class WebSocketConfig implements WebSocketConfigurer, WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins("*")
                 .allowedMethods("*")
-                //.allowCredentials(true);  우분투 테스트
+                .allowCredentials(false);  
     }
 }
