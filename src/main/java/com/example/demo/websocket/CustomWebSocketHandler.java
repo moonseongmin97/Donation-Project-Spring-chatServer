@@ -19,33 +19,77 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
 
     @Autowired
     private RedisService redisService;
-    
+
     // 채팅방별 연결 관리
     private final Map<String, List<WebSocketSession>> chatRooms = new HashMap<>();
+
+    // 전체 연결된 세션 관리 (브로드캐스트용)
+    private final List<WebSocketSession> allSessions = new ArrayList<>();
+
+    /**
+     * 전체 사용자에게 브로드캐스트 (기부 알림용)
+     */
+    public void broadcastToAll(String message) {
+        for (WebSocketSession session : allSessions) {
+            try {
+                if (session.isOpen()) {
+                    session.sendMessage(new TextMessage(message));
+                }
+            } catch (Exception e) {
+                System.out.println("브로드캐스트 실패: " + e.getMessage());
+            }
+        }
+    }
+
+    // 브로드캐스트 메시지 저장용 글로벌 키
+    private static final String BROADCAST_KEY = "chat:broadcast";
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         System.out.println("채팅연결");
+
+        // 전체 세션 리스트에 추가 (브로드캐스트용)
+        allSessions.add(session);
+
         String roomId = getRoomId(session);
         ObjectMapper objectMapper = new ObjectMapper();
-        //redisTemplate.delete("chat:" + roomId); 
+        //redisTemplate.delete("chat:" + roomId);
         //redisTemplate.delete("chat:" + roomId);
         // 채팅방 세션 저장
         chatRooms.computeIfAbsent(roomId, k -> new ArrayList<>()).add(session);
         System.out.println("세션==="+session.getAttributes().get("user"));
-        //System.out.println("레디스==="+(String) redisTemplate.opsForValue().get(session.getAttributes().get("user"))); 
+        //System.out.println("레디스==="+(String) redisTemplate.opsForValue().get(session.getAttributes().get("user")));
         // 레디스 키값 체크 후 사용하자
-          
-        
-        // Redis에서 메시지 로드
+
+
+        // Redis에서 채팅방 메시지 로드
         List<String> messages = redisTemplate.opsForList().range("chat:" + roomId, 0, -1);
+
+        // Redis에서 브로드캐스트 메시지도 로드 (기부 알림 등)
+        List<String> broadcastMessages = redisTemplate.opsForList().range(BROADCAST_KEY, 0, -1);
 
         // 메시지를 JSON 객체로 변환
         List<Map<String, Object>> parsedMessages = new ArrayList<>();
         System.out.println("messages========="+messages);
-        for (String message : messages) {
-            Map<String, Object> parsedMessage = objectMapper.readValue(message, Map.class);
-            parsedMessages.add(parsedMessage);
+
+        // 채팅방 메시지 파싱
+        if (messages != null && !messages.isEmpty()) {
+            for (String message : messages) {
+                if (message != null) {
+                    Map<String, Object> parsedMessage = objectMapper.readValue(message, Map.class);
+                    parsedMessages.add(parsedMessage);
+                }
+            }
+        }
+
+        // 브로드캐스트 메시지 파싱 (기부 알림 등)
+        if (broadcastMessages != null && !broadcastMessages.isEmpty()) {
+            for (String message : broadcastMessages) {
+                if (message != null) {
+                    Map<String, Object> parsedMessage = objectMapper.readValue(message, Map.class);
+                    parsedMessages.add(parsedMessage);
+                }
+            }
         }
 
         // JSON 배열로 직렬화
@@ -74,12 +118,12 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
         if(userUuid!=null && redisService.getTokenKey(userUuid)) {
         	 userInfo = redisTemplate.opsForValue().get(session.getAttributes().get("user"));
         	 Map<String, Object> parsedMessage = objectMapper.readValue(userInfo, Map.class);
-        	 
+
         	parsedPayload.put("userId",parsedMessage.get("userId"));
         	parsedPayload.put("username",parsedMessage.get("username"));
         	messageListJson = objectMapper.writeValueAsString(parsedPayload);
         }else {
-        	objectMapper.writeValueAsString(parsedPayload);  	
+        	messageListJson = objectMapper.writeValueAsString(parsedPayload);
         }
       
         //System.out.println("레디스==="+);
@@ -105,8 +149,13 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
     //이건 소켓 닫힐때....
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        // 전체 세션 리스트에서 제거
+        allSessions.remove(session);
+
         String roomId = getRoomId(session);
-        chatRooms.get(roomId).remove(session);
+        if (chatRooms.get(roomId) != null) {
+            chatRooms.get(roomId).remove(session);
+        }
     }
 
     private String getRoomId(WebSocketSession session) {    	
