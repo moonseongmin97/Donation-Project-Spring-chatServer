@@ -1,0 +1,61 @@
+name: Chat Server CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Build with Gradle
+      run: ./gradlew build -x test
+
+    # 1. JAR 파일을 서버로 전송
+    - name: Copy JAR to Server
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: 2222
+        source: "build/libs/ROOT.jar"
+        target: "/var/www/chat-server"
+        strip_components: 2
+        overwrite: true
+
+    # 2. 기존 파일 백업 및 서비스 재시작
+    - name: Execute remote ssh commands
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: 2222
+        script: |
+          mkdir -p /var/www/chat-server
+          # 기존 파일 백업
+          if [ -f "/var/www/chat-server/chat-server.jar" ]; then
+            cp /var/www/chat-server/chat-server.jar /var/www/chat-server/chat-server.jar.bak_$(date +%Y%m%d_%H%M%S)
+          fi
+          # ROOT.jar -> chat-server.jar 이름 변경
+          mv /var/www/chat-server/ROOT.jar /var/www/chat-server/chat-server.jar
+          # 서비스 재시작
+          sudo systemctl restart donation-chat
+          # 배포 결과 확인
+          ls -l /var/www/chat-server/chat-server.jar*
+          systemctl status donation-chat --no-pager
