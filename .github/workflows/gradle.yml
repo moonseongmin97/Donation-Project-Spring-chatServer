@@ -25,6 +25,18 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew build -x test
 
+    # 0. 서버에 배포 폴더 생성
+    - name: Create deploy directory
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: 2222
+        script: |
+          sudo mkdir -p /var/www/chat-server
+          sudo chown $USER:$USER /var/www/chat-server
+
     # 1. JAR 파일을 서버로 전송
     - name: Copy JAR to Server
       uses: appleboy/scp-action@v0.1.7
