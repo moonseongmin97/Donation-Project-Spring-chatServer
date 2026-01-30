@@ -35,3 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Project ###
+logFile.txt
+nul
+/.metadata/
